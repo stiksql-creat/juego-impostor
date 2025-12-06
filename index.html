@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juego del Impostor Profesional</title>
+<style>
+  /* Reset básico */
+  * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+  body { background:#1b1b2f; color:#fff; }
+
+  /* Contenedor central */
+  .container { max-width:1000px; margin:auto; padding:20px; }
+
+  h1,h2 { text-align:center; margin-bottom:20px; }
+
+  /* Inputs y botones */
+  input, select, textarea, button { padding:10px; margin:5px 0; border-radius:6px; border:none; font-size:16px; }
+  input, select, textarea { width:100%; }
+  button { cursor:pointer; transition:0.3s; }
+  button:hover { opacity:0.85; }
+
+  /* Paneles */
+  #gamePanel, #votePanel { display:none; margin-top:20px; }
+  .panel { background:#2c2c44; padding:15px; border-radius:8px; margin-bottom:15px; }
+  .panel h3 { margin-bottom:10px; }
+
+  /* Lista de jugadores y votaciones */
+  .playerList, .voteList { list-style:none; margin:0; padding:0; }
+  .playerList li, .voteList li { padding:6px; border-bottom:1px solid #444; }
+
+  /* Cronómetro destacado */
+  #timer { font-weight:bold; font-size:20px; color:#00ff99; }
+
+  /* Chat privado impostores */
+  #impostorChat { display:none; background:#3a3a5c; padding:10px; border-radius:6px; margin-top:10px; max-height:150px; overflow-y:auto; }
+  #chatBox { max-height:100px; overflow-y:auto; margin-bottom:5px; }
+  #impostorMessage { width:75%; display:inline-block; }
+  #sendImpostor { width:23%; display:inline-block; }
+
+  /* Botón deshabilitado */
+  button:disabled { background:#555; cursor:not-allowed; }
+
+  /* Responsive */
+  @media(max-width:600px){ #impostorMessage,#sendImpostor{width:100%; display:block; margin-top:5px;} }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Juego del Impostor</h1>
+
+  <!-- Login Panel -->
+  <div id="loginPanel" class="panel">
+    <h2>Unirse / Crear Sala</h2>
+    <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+    <input type="number" id="numPlayers" placeholder="Número de jugadores (solo admin)">
+    <button id="createRoomBtn">Crear Sala</button>
+    <input type="number" id="joinRoomNumber" placeholder="Número de sala">
+    <button id="joinRoomBtn">Unirse a Sala</button>
+    <div id="roomInfo"></div>
+  </div>
+
+  <!-- Game Panel -->
+  <div id="gamePanel" class="panel">
+    <h2>Sala <span id="roomNumber"></span></h2>
+    <p>Tu rol: <span id="roleDisplay"></span></p>
+    <p id="wordDisplay"></p>
+
+    <h3>Jugadores en sala:</h3>
+    <ul id="playersList" class="playerList"></ul>
+
+    <button id="startGameBtn">Iniciar Juego</button>
+    <button id="nextTurnBtn">Siguiente Turno</button>
+    <button id="endGameBtn">Finalizar Juego</button>
+    <button id="resetGameBtn">Reiniciar Partida</button>
+
+    <p>Tiempo restante: <span id="timer">60</span> segundos</p>
+    <p id="roundInfo"></p>
+    <p>Link para invitar jugadores: <span id="inviteLink"></span></p>
+
+    <!-- Chat Impostores -->
+    <div id="impostorChat">
+      <h3>Chat Privado Impostores</h3>
+      <div id="chatBox"></div>
+      <input type="text" id="impostorMessage" placeholder="Mensaje...">
+      <button id="sendImpostor">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Vote Panel -->
+  <div id="votePanel" class="panel">
+    <h2>Votación</h2>
+    <ul id="voteList" class="voteList"></ul>
+    <button id="submitVoteBtn" disabled>Enviar Votos</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, get, child, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+// Config Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyAig1kHcEgjf-ncLUN2Vc2ZKBCC4sFHZWs",
+  authDomain: "impostor-35ecf.firebaseapp.com",
+  databaseURL: "https://impostor-35ecf-default-rtdb.firebaseio.com/",
+  projectId: "impostor-35ecf",
+  storageBucket: "impostor-35ecf.appspot.com",
+  messagingSenderId: "351796401652",
+  appId: "1:351796401652:web:fc1d656503fdd0fc08d5a1",
+  measurementId: "G-5YQYFFB4T1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Variables
+let roomNumber=null, playerName=null, playerId=null, isAdmin=false;
+let players=[], playerRoles={}, playerWords={}, currentTurn=0, timerInterval=null, requiredPlayers=0;
+let categories={
+  frutas:["Manzana","Banana","Pera","Fresa","Naranja","Sandía","Mango","Kiwi","Uva","Cereza"],
+  animales:["Perro","Gato","León","Tigre","Elefante","Jirafa","Cebra","Mono","Lobo"],
+  colores:["Rojo","Azul","Verde","Amarillo","Negro","Blanco","Rosa","Morado"]
+};
+
+// Funciones auxiliares
+function randomInt(max){return Math.floor(Math.random()*max);}
+function updatePlayersList(){
+  const listEl = document.getElementById("playersList");
+  listEl.innerHTML="";
+  players.forEach(p=>{
+    const li=document.createElement("li");
+    li.textContent=p.name;
+    listEl.appendChild(li);
+  });
+}
+
+// Crear Sala
+document.getElementById("createRoomBtn").onclick=async ()=>{
+  playerName=document.getElementById("playerName").value.trim();
+  requiredPlayers=parseInt(document.getElementById("numPlayers").value);
+  if(!playerName||!requiredPlayers||requiredPlayers<2)return alert("Nombre y número válido");
+  isAdmin=true;
+  roomNumber=randomInt(9000)+1000;
+  playerId="player_"+Date.now();
+  await set(ref(db,`rooms/${roomNumber}/players/${playerId}`),{name:playerName});
+  await set(ref(db,`rooms/${roomNumber}/admin`),{id:playerId, requiredPlayers});
+  document.getElementById("loginPanel").style.display="none";
+  document.getElementById("gamePanel").style.display="block";
+  document.getElementById("roomNumber").textContent=roomNumber;
+  document.getElementById("inviteLink").textContent=`${window.location.href}?room=${roomNumber}`;
+  listenPlayers();
+};
+
+// Unirse a Sala
+document.getElementById("joinRoomBtn").onclick=async ()=>{
+  playerName=document.getElementById("playerName").value.trim();
+  const joinRoomNumber=parseInt(document.getElementById("joinRoomNumber").value);
+  if(!playerName||!joinRoomNumber)return alert("Nombre y número requerido");
+  const roomRef=ref(db,`rooms/${joinRoomNumber}/players`);
+  const snapshot=await get(roomRef);
+  if(!snapshot.exists())return alert("Sala no existe");
+  const adminSnap=await get(ref(db,`rooms/${joinRoomNumber}/admin`));
+  requiredPlayers=adminSnap.val().requiredPlayers;
+  if(Object.keys(snapshot.val()).length>=requiredPlayers)return alert("Sala llena");
+  playerId="player_"+Date.now();
+  await set(ref(db,`rooms/${joinRoomNumber}/players/${playerId}`),{name:playerName});
+  roomNumber=joinRoomNumber;
+  document.getElementById("loginPanel").style.display="none";
+  document.getElementById("gamePanel").style.display="block";
+  document.getElementById("roomNumber").textContent=roomNumber;
+  listenPlayers();
+};
+
+// Escuchar jugadores
+function listenPlayers(){
+  const playersRef=ref(db,`rooms/${roomNumber}/players`);
+  onValue(playersRef,snapshot=>{
+    const data=snapshot.val()||{};
+    players=Object.entries(data).map(([id,obj])=>({id,name:obj.name,role:obj.role,word:obj.word,category:obj.category}));
+    updatePlayersList();
+  });
+}
+
+// Iniciar juego
+document.getElementById("startGameBtn").onclick=async ()=>{
+  if(!isAdmin)return alert("Solo admin");
+  if(players.length!==requiredPlayers)return alert(`Esperando ${requiredPlayers} jugadores`);
+  assignRolesWords();
+  startTurn();
+};
+
+// Asignar roles y palabras
+async function assignRolesWords(){
+  let impostorsCount=players.length<7?1:2;
+  let indexes=[...Array(players.length).keys()], impostorIndexes=[];
+  while(impostorIndexes.length<impostorsCount){
+    let idx; do{idx=indexes[randomInt(indexes.length)];}while(idx===0);
+    impostorIndexes.push(idx); indexes=indexes.filter(i=>i!==idx);
+  }
+  const categoryKeys=Object.keys(categories);
+  const chosenCategory=categoryKeys[randomInt(categoryKeys.length)];
+  for(let i=0;i<players.length;i++){
+    const player=players[i];
+    playerRoles[player.id]=impostorIndexes.includes(i)?"impostor":"jugador";
+    playerWords[player.id]=playerRoles[player.id]==="jugador"?categories[chosenCategory][randomInt(categories[chosenCategory].length)]:null;
+    await update(ref(db,`rooms/${roomNumber}/players/${player.id}`),{role:playerRoles[player.id],word:playerWords[player.id],category:chosenCategory});
+  }
+  // Mostrar chat impostores
+  if(playerRoles[playerId]==="impostor")document.getElementById("impostorChat").style.display="block";
+}
+
+// Turnos
+let turnIndex=0;
+function startTurn(){
+  if(turnIndex>=players.length){ turnIndex=0; alert("Ronda completa"); document.getElementById("submitVoteBtn").disabled=false; return; }
+  const currentPlayer=players[turnIndex];
+  document.getElementById("roleDisplay").textContent=currentPlayer.id===playerId?playerRoles[currentPlayer.id]:"Jugador en turno";
+  document.getElementById("wordDisplay").textContent=currentPlayer.id===playerId?(playerRoles[currentPlayer.id]==="jugador"?playerWords[currentPlayer.id]:`Categoría: ${currentPlayer.category}`):"";
+  startTimer();
+}
+
+// Cronómetro
+function startTimer(){
+  let time=60;
+  document.getElementById("timer").textContent=time;
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    time--;
+    document.getElementById("timer").textContent=time;
+    if(time<=0){clearInterval(timerInterval); turnIndex++; startTurn();}
+  },1000);
+}
+
+// Botones turnos y fin
+document.getElementById("nextTurnBtn").onclick=()=>{ turnIndex++; startTurn(); }
+document.getElementById("endGameBtn").onclick=async ()=>{
+  clearInterval(timerInterval); alert("Juego finalizado"); remove(ref(db,`rooms/${roomNumber}`)); location.reload();
+}
+document.getElementById("resetGameBtn").onclick=async ()=>{
+  clearInterval(timerInterval); assignRolesWords(); turnIndex=0; startTurn();
+}
+
+// Enviar mensajes chat impostores
+document.getElementById("sendImpostor").onclick=async ()=>{
+  const msg=document.getElementById("impostorMessage").value.trim(); if(!msg)return;
+  const chatRef=ref(db,`rooms/${roomNumber}/impostorChat`);
+  await push(chatRef,{player:playerName,message:msg,time:Date.now()});
+  document.getElementById("impostorMessage").value="";
+}
+const chatBox=document.getElementById("chatBox");
+onValue(ref(db,`rooms/${roomNumber}/impostorChat`),snapshot=>{
+  chatBox.innerHTML=""; const data=snapshot.val()||{};
+  Object.values(data).forEach(m=>{ const p=document.createElement("p"); p.textContent=`${m.player}: ${m.message}`; chatBox.appendChild(p); chatBox.scrollTop=chatBox.scrollHeight; });
+});
+
+</script>
+</body>
+</html>
