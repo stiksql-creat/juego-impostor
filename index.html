@@ -50,7 +50,9 @@
   .msg{padding:8px;border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,0.02)}
   .msg.self{background:linear-gradient(90deg, rgba(92,140,255,0.2), rgba(124,227,180,0.08));}
   .bigAction{padding:12px 18px;border-radius:30px;background:var(--btn);color:#052044;border:none;font-weight:700}
-  @media(max-width:1100px){ .grid{grid-template-columns:1fr; padding-bottom:30px} .card{margin-bottom:12px} }
+  /* Guest invite panel (shows if ?room=XXXX) */
+  #inviteLoginPanel{position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:2000;max-width:420px;width:90%;display:none}
+  @media(max-width:1100px){ .grid{grid-template-columns:1fr; padding-bottom:30px} .card{margin-bottom:12px} #inviteLoginPanel{top:8%} }
 </style>
 </head>
 <body>
@@ -60,7 +62,23 @@
     <div class="muted">Multijugador • Firebase</div>
   </header>
 
-  <div class="grid">
+  <!-- INVITE LOGIN: aparece solo si ?room=XXXX en la URL -->
+  <div id="inviteLoginPanel" class="card">
+    <div style="margin-bottom:12px">
+      <label class="muted">Tu nombre</label>
+      <input id="guestName" placeholder="Ej: Ana">
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="muted">Número de sala</label>
+      <input id="guestRoomNumber" placeholder="Ej: 1234">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="guestJoinBtn" class="bigAction" style="flex:1">Unirse</button>
+      <button id="guestCancelBtn" class="btn-ghost small" style="flex:0 0 110px">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="grid" id="mainGrid">
     <!-- LEFT: Lobby -->
     <div class="card left">
       <div style="margin-bottom:12px">
@@ -78,11 +96,18 @@
         <button id="joinRoomBtn" class="btn-ghost small">Unirse</button>
       </div>
 
+      <!-- Input para número de sala al unirse (añadido para que join funcione) -->
+      <div style="margin-bottom:12px">
+        <label class="muted">Número de sala (si te unes)</label>
+        <input id="joinRoomNumber" placeholder="Ej: 1234">
+      </div>
+
       <div class="inviteBox" style="margin-bottom:12px">
         <div class="muted">Sala</div>
         <div id="roomInfo" style="font-weight:700;margin-top:6px">—</div>
         <div style="margin-top:8px" class="muted">Link de invitación:</div>
-        <div id="inviteLink" style="margin-top:6px;word-break:break-all;color:var(--accent)">—</div>
+        <!-- inviteLink ahora es <a> clickeable -->
+        <a id="inviteLink" style="margin-top:6px;word-break:break-all;color:var(--accent);display:block;">—</a>
       </div>
 
       <div style="margin-bottom:12px">
@@ -229,6 +254,12 @@ const voteRows = $('voteRows');
 const voteSubmitBtn = $('voteSubmitBtn');
 const votingStatus = $('votingStatus');
 
+const guestPanel = $('inviteLoginPanel');
+const guestNameInput = $('guestName');
+const guestRoomNumberInput = $('guestRoomNumber');
+const guestJoinBtn = $('guestJoinBtn');
+const guestCancelBtn = $('guestCancelBtn');
+
 /* ========== Categorías completas ========== */
 const categories = {
   frutas: ["Manzana","Banana","Pera","Fresa","Naranja","Sandía","Mango","Kiwi","Uva","Cereza","Melón","Papaya","Piña","Durazno","Ciruela","Frambuesa","Arándano","Limón","Mandarina","Pomelo","Coco","Granada","Higo","Litchi","Guayaba"],
@@ -272,20 +303,39 @@ createRoomBtn.addEventListener('click', async ()=>{
   const name = playerNameInput.value.trim();
   const req = parseInt(numPlayersInput.value);
   if(!name || !req || req < 2) return alert('Ingresa nombre y número de jugadores válido (mínimo 2).');
+
+  // asignar variables locales
   playerName = name;
   playerId = uid();
   isAdmin = true;
+
+  // generar número de sala y convertir a string
   roomNumber = String(Math.floor(1000 + Math.random() * 9000));
-  // escribe meta y jugador
-  await set(ref(db, `rooms/${roomNumber}/meta`), {adminId: playerId, requiredPlayers: req, turnOrder: [], currentTurnIndex: 0, roundsPassed: 0, votingEnabled: false});
+  requiredPlayers = req;
+
+  // escribir meta y registrar admin como primer jugador
+  await set(ref(db, `rooms/${roomNumber}/meta`), {
+    adminId: playerId,
+    requiredPlayers: req,
+    turnOrder: [],
+    currentTurnIndex: 0,
+    roundsPassed: 0,
+    votingEnabled: false
+  });
+
   await set(ref(db, `rooms/${roomNumber}/players/${playerId}`), {name: playerName, number: 1});
-  // UI: remove login and show cards (the HTML layout already shows them; we keep as-is)
-  document.querySelector('#loginPanel')?.remove?.();
-  // start listening
+
+  // actualizar UI inmediatamente (no esperar al listener)
+  setText('roomInfo', `Sala ${roomNumber} • requerido: ${requiredPlayers}`);
+  setText('roomNumber', roomNumber);
+  inviteLink.textContent = `${location.origin}${location.pathname}?room=${roomNumber}`;
+  inviteLink.href = `${location.origin}${location.pathname}?room=${roomNumber}`;
+
+  // iniciar listeners
   startListeningRoom(roomNumber);
 });
 
-// unirse a sala
+// unirse a sala (botón del panel principal)
 joinRoomBtn.addEventListener('click', async ()=>{
   const name = playerNameInput.value.trim();
   const joinNum = (document.getElementById('joinRoomNumber')?.value || '').toString().trim();
@@ -302,8 +352,43 @@ joinRoomBtn.addEventListener('click', async ()=>{
   isAdmin = false;
   roomNumber = joinNum;
   await set(ref(db, `rooms/${roomNumber}/players/${playerId}`), {name: playerName, number: count+1});
-  document.querySelector('#loginPanel')?.remove?.();
+  // actualizar UI minimal
+  setText('roomNumber', roomNumber);
+  inviteLink.textContent = `${location.origin}${location.pathname}?room=${roomNumber}`;
+  inviteLink.href = `${location.origin}${location.pathname}?room=${roomNumber}`;
   startListeningRoom(roomNumber);
+});
+
+/* Guest join (panel que aparece si alguien abre ?room=XXXX) */
+guestJoinBtn.addEventListener('click', async ()=>{
+  const name = guestNameInput.value.trim();
+  const room = guestRoomNumberInput.value.trim();
+  if(!name || !room) return alert('Ingresa nombre y número de sala.');
+  const metaSnap = await get(ref(db, `rooms/${room}/meta`));
+  if(!metaSnap.exists()) return alert('Sala no existe.');
+  const meta = metaSnap.val();
+  const playersSnap = await get(ref(db, `rooms/${room}/players`));
+  const count = playersSnap.exists() ? Object.keys(playersSnap.val()).length : 0;
+  if(count >= meta.requiredPlayers) return alert('La sala ya tiene los jugadores requeridos.');
+  // registrar jugador
+  playerName = name;
+  playerId = uid();
+  isAdmin = false;
+  roomNumber = room;
+  await set(ref(db, `rooms/${room}/players/${playerId}`), {name: playerName, number: count+1});
+  // ocultar panel invitado y mostrar grid
+  guestPanel.style.display = 'none';
+  document.getElementById('mainGrid').style.display = 'grid';
+  document.querySelector('header').style.display = 'flex';
+  setText('roomNumber', roomNumber);
+  inviteLink.textContent = `${location.origin}${location.pathname}?room=${roomNumber}`;
+  inviteLink.href = `${location.origin}${location.pathname}?room=${roomNumber}`;
+  startListeningRoom(roomNumber);
+});
+guestCancelBtn.addEventListener('click', ()=>{
+  guestPanel.style.display = 'none';
+  document.getElementById('mainGrid').style.display = 'grid';
+  document.querySelector('header').style.display = 'flex';
 });
 
 /* startListeningRoom: attach all listeners for the room */
@@ -330,6 +415,7 @@ function startListeningRoom(room){
     setText('roomInfo', `Sala ${room} • requerido: ${requiredPlayers}`);
     setText('roomNumber', room);
     inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
+    inviteLink.href = `${location.origin}${location.pathname}?room=${room}`;
     setText('roundInfo', `Rondas completadas: ${roundsPassed}`);
     setText('votingStatus', votingEnabled ? 'Habilitada' : 'Bloqueada');
     updateTurnDisplay();
@@ -370,7 +456,7 @@ function renderPlayers(){
   });
 }
 
-/* After players sync, update local displays */
+/* After players sync, update local displays (única definición) */
 function afterPlayersSync(){
   buildVoteRows();
   const me = players.find(p=>p.id === playerId);
@@ -522,14 +608,28 @@ voteSubmitBtn.addEventListener('click', async ()=>{
   document.querySelectorAll('.voteRow').forEach(r=> r.style.pointerEvents='none');
 });
 
-/* Process votes once all in */
+/* Process votes once all in (mejorada: maneja empates, resetea, elimina) */
 async function processVotes(votes){
   const tally = {};
   Object.values(votes).forEach(v => tally[v] = (tally[v]||0)+1);
-  let max = -1, maxId = null;
+
+  // encontrar el máximo
+  let max = -1;
+  let maxId = null;
   for(const [id,c] of Object.entries(tally)){
     if(c > max){ max = c; maxId = id; }
   }
+
+  // comprobar empates
+  const numMax = Object.values(tally).filter(v => v === max).length;
+  if(numMax > 1){
+    alert('❗ Hubo un empate en la votación. Nadie es expulsado.');
+    // reset votos & estado
+    await remove(ref(db, `rooms/${roomNumber}/votes`));
+    await update(ref(db, `rooms/${roomNumber}/meta`), {votingEnabled: false, roundsPassed: 0, currentTurnIndex: 0});
+    return;
+  }
+
   const eliminated = players.find(p=>p.id === maxId);
   const wasImpostor = eliminated && eliminated.role === 'impostor';
   if(eliminated){
@@ -538,7 +638,7 @@ async function processVotes(votes){
   } else {
     alert('Nadie fue eliminado');
   }
-  // reset votes & votingEnabled & roundsPassed, currentTurnIndex
+  // reset votos & votingEnabled & roundsPassed, currentTurnIndex
   await remove(ref(db, `rooms/${roomNumber}/votes`));
   await update(ref(db, `rooms/${roomNumber}/meta`), {votingEnabled: false, roundsPassed: 0, currentTurnIndex: 0});
 }
@@ -605,31 +705,17 @@ function updateVoteUI(){
   voteSubmitBtn.disabled = !votingEnabled;
 }
 
-/* Utility: render players center list and left list (already handled in afterPlayersSync) */
-function afterPlayersSync(){
-  // update own private displays
-  const me = players.find(p=>p.id === playerId);
-  if(me){
-    setText('roleDisplay', me.role || '—');
-    if(me.role === 'jugador') setText('wordDisplay', me.word || '—');
-    else if(me.role === 'impostor') setText('wordDisplay', `Categoría: ${me.category || '—'}`);
-    // impostor chat visibility
-    if(me.role === 'impostor'){
-      impostorChatContainer.style.display = 'block';
-    } else {
-      impostorChatContainer.style.display = 'none';
-    }
-  }
-  // build vote UI
-  buildVoteRows();
-  updateVoteUI();
-}
-
-/* Pre-fill join room from URL param ?room=XXXX */
+/* Pre-fill join room from URL param ?room=XXXX and show guest panel */
 (function prefill(){
   const params = new URLSearchParams(location.search);
   const r = params.get('room');
-  if(r) document.getElementById('joinRoomNumber').value = r;
+  if(r){
+    // hide main UI to show minimal join
+    document.getElementById('mainGrid').style.display = 'none';
+    document.querySelector('header').style.display = 'none';
+    guestPanel.style.display = 'block';
+    guestRoomNumberInput.value = r;
+  }
 })();
 
 </script>
