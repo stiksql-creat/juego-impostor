@@ -6,53 +6,47 @@
 <title>Impostor — Juego</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#071025; --card:#0b1220; --accent:#7CE3B4; --muted:#94a3b8; --danger:#FF6B6B; --glass: rgba(255,255,255,0.03);
-    --btn:#5B8CFF; --btn2:#7CE3B4;
-  }
-  *{box-sizing:border-box;font-family:Inter,system-ui,Arial,Helvetica,sans-serif}
-  body{margin:0;background:linear-gradient(180deg,#061021 0%, #071025 100%);color:#e6eef8;min-height:100vh}
-  .wrap{max-width:1150px;margin:18px auto;padding:14px}
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  h1{font-weight:700;margin:0;font-size:18px}
-  .grid{display:grid;grid-template-columns:320px 1fr 320px;gap:14px}
-  .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.5)}
-  input,select,button,textarea{border-radius:999px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);padding:10px;color:inherit}
-  button{cursor:pointer;outline:none;font-weight:600}
-  .muted{color:var(--muted);font-size:13px}
-  /* Left */
-  .left .section{margin-bottom:12px}
-  .inviteBox{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:12px}
-  .playersList{list-style:none;padding:0;margin:8px 0;max-height:340px;overflow:auto}
-  .playersList li{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;background:rgba(255,255,255,0.01);margin-bottom:8px}
-  .playersList li.active{box-shadow:0 0 0 3px rgba(123,198,255,0.06);background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
-  .controls{display:flex;gap:8px;flex-wrap:wrap}
-  .controls button{flex:1;padding:10px;border-radius:30px}
-  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
-  .btn-danger{background:var(--danger);color:#111;border-radius:30px}
-  .small{font-size:13px;padding:8px;border-radius:30px}
-  /* Center */
-  .roleCard{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
-  .roleBig{font-weight:700;font-size:20px}
-  .wordBox{margin-top:10px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.02)}
-  .timer{font-size:22px;font-weight:700;color:var(--btn)}
-  /* Voting */
-  .votingPanel{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
-  .voteRow{display:flex;align-items:center;gap:12px;padding:8px;border-radius:999px;margin-bottom:8px;background:rgba(255,255,255,0.01);cursor:pointer}
-  .voteRow.disabled{opacity:0.5;cursor:not-allowed}
-  .voteName{width:40%}
-  .voteBar{flex:1;height:18px;background:rgba(255,255,255,0.03);border-radius:999px;position:relative;overflow:hidden}
-  .voteFill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--btn),var(--btn2));width:0%}
-  .voteCount{width:40px;text-align:right;font-weight:600}
-  .voteSubmit{width:100%;padding:12px;border-radius:30px;background:var(--btn);color:#052044;border:none;font-weight:700}
-  /* Chat impostores */
-  .impostorChat{padding:12px;border-radius:12px;background:linear-gradient(180deg,#07132a,#071425);max-height:320px;overflow:auto}
-  .msg{padding:8px;border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,0.02)}
-  .msg.self{background:linear-gradient(90deg, rgba(92,140,255,0.2), rgba(124,227,180,0.08));}
-  .bigAction{padding:12px 18px;border-radius:30px;background:var(--btn);color:#052044;border:none;font-weight:700}
-  /* Guest invite panel (shows if ?room=XXXX) */
-  #inviteLoginPanel{position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:2000;max-width:420px;width:90%;display:none}
-  @media(max-width:1100px){ .grid{grid-template-columns:1fr; padding-bottom:30px} .card{margin-bottom:12px} #inviteLoginPanel{top:8%} }
+:root{
+  --bg:#071025; --card:#0b1220; --accent:#7CE3B4; --muted:#94a3b8; --danger:#FF6B6B; --glass: rgba(255,255,255,0.03);
+  --btn:#5B8CFF; --btn2:#7CE3B4;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Arial,Helvetica,sans-serif}
+body{margin:0;background:linear-gradient(180deg,#061021 0%, #071025 100%);color:#e6eef8;min-height:100vh}
+.wrap{max-width:1150px;margin:18px auto;padding:14px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+h1{font-weight:700;margin:0;font-size:18px}
+.grid{display:grid;grid-template-columns:320px 1fr 320px;gap:14px}
+.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.5)}
+input,select,button,textarea{border-radius:999px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);padding:10px;color:inherit}
+button{cursor:pointer;outline:none;font-weight:600}
+.muted{color:var(--muted);font-size:13px}
+.left .section{margin-bottom:12px}
+.inviteBox{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:12px}
+.playersList{list-style:none;padding:0;margin:8px 0;max-height:340px;overflow:auto}
+.playersList li{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;background:rgba(255,255,255,0.01);margin-bottom:8px}
+.playersList li.active{box-shadow:0 0 0 3px rgba(123,198,255,0.06);background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.controls button{flex:1;padding:10px;border-radius:30px}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+.btn-danger{background:var(--danger);color:#111;border-radius:30px}
+.small{font-size:13px;padding:8px;border-radius:30px}
+.roleCard{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01))}
+.roleBig{font-weight:700;font-size:20px}
+.wordBox{margin-top:10px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.02)}
+.timer{font-size:22px;font-weight:700;color:var(--btn)}
+.votingPanel{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+.voteRow{display:flex;align-items:center;gap:12px;padding:8px;border-radius:999px;margin-bottom:8px;background:rgba(255,255,255,0.01);cursor:pointer}
+.voteRow.disabled{opacity:0.5;cursor:not-allowed}
+.voteName{width:40%}
+.voteBar{flex:1;height:18px;background:rgba(255,255,255,0.03);border-radius:999px;position:relative;overflow:hidden}
+.voteFill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--btn),var(--btn2));width:0%}
+.voteCount{width:40px;text-align:right;font-weight:600}
+.voteSubmit{width:100%;padding:12px;border-radius:30px;background:var(--btn);color:#052044;border:none;font-weight:700}
+.impostorChat{padding:12px;border-radius:12px;background:linear-gradient(180deg,#07132a,#071425);max-height:320px;overflow:auto}
+.msg{padding:8px;border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,0.02)}
+.msg.self{background:linear-gradient(90deg, rgba(92,140,255,0.2), rgba(124,227,180,0.08));}
+.bigAction{padding:12px 18px;border-radius:30px;background:var(--btn);color:#052044;border:none;font-weight:700}
+@media(max-width:1100px){ .grid{grid-template-columns:1fr; padding-bottom:30px} .card{margin-bottom:12px} }
 </style>
 </head>
 <body>
@@ -62,28 +56,17 @@
     <div class="muted">Multijugador • Firebase</div>
   </header>
 
-  <!-- INVITE LOGIN: aparece solo si ?room=XXXX en la URL -->
-  <div id="inviteLoginPanel" class="card">
-    <div style="margin-bottom:12px">
-      <label class="muted">Tu nombre</label>
-      <input id="guestName" placeholder="Ej: Ana">
-    </div>
-    <div style="margin-bottom:12px">
-      <label class="muted">Número de sala</label>
-      <input id="guestRoomNumber" placeholder="Ej: 1234">
-    </div>
-    <div style="display:flex;gap:8px">
-      <button id="guestJoinBtn" class="bigAction" style="flex:1">Unirse</button>
-      <button id="guestCancelBtn" class="btn-ghost small" style="flex:0 0 110px">Cancelar</button>
-    </div>
-  </div>
-
-  <div class="grid" id="mainGrid">
+  <div class="grid">
     <!-- LEFT: Lobby -->
     <div class="card left">
       <div style="margin-bottom:12px">
         <label class="muted">Tu nombre</label>
         <input id="playerName" placeholder="Ej: Ana">
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label class="muted">Número de sala (solo unirse)</label>
+        <input id="joinRoomNumber" placeholder="Ej: 1234">
       </div>
 
       <div style="margin-bottom:12px">
@@ -96,18 +79,11 @@
         <button id="joinRoomBtn" class="btn-ghost small">Unirse</button>
       </div>
 
-      <!-- Input para número de sala al unirse (añadido para que join funcione) -->
-      <div style="margin-bottom:12px">
-        <label class="muted">Número de sala (si te unes)</label>
-        <input id="joinRoomNumber" placeholder="Ej: 1234">
-      </div>
-
       <div class="inviteBox" style="margin-bottom:12px">
         <div class="muted">Sala</div>
         <div id="roomInfo" style="font-weight:700;margin-top:6px">—</div>
         <div style="margin-top:8px" class="muted">Link de invitación:</div>
-        <!-- inviteLink ahora es <a> clickeable -->
-        <a id="inviteLink" style="margin-top:6px;word-break:break-all;color:var(--accent);display:block;">—</a>
+        <div id="inviteLink" style="margin-top:6px;word-break:break-all;color:var(--accent)">—</div>
       </div>
 
       <div style="margin-bottom:12px">
@@ -188,13 +164,12 @@
   </div>
 </div>
 
-<!-- Firebase + Lógica -->
-<script type="module">
-// Firebase modular SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+<!-- Firebase (compat para poder abrir directamente desde file://) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-/* ========== TU FIREBASE CONFIG (confirmada) ========== */
+<script>
+/* === Config Firebase: conserva la tuya si ya tienes una === */
 const firebaseConfig = {
   apiKey: "AIzaSyAig1kHcEgjf-ncLUN2Vc2ZKBCC4sFHZWs",
   authDomain: "impostor-35ecf.firebaseapp.com",
@@ -205,62 +180,10 @@ const firebaseConfig = {
   appId: "1:351796401652:web:fc1d656503fdd0fc08d5a1",
   measurementId: "G-5YQYFFB4T1"
 };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-/* ========== Estado local ========== */
-let roomNumber = null;
-let playerName = null;
-let playerId = null;
-let isAdmin = false;
-let players = []; // array de {id,name,number,role,word,category}
-let requiredPlayers = 0;
-let turnOrder = []; // array de ids
-let currentTurnIndex = 0;
-let roundsPassed = 0;
-let votingEnabled = false;
-let localVote = null; // id elegido por este cliente
-let timerInterval = null;
-let timeLeft = 60;
-
-/* ========== DOM shortcuts ========== */
-const $ = id => document.getElementById(id);
-const playerNameInput = $('playerName');
-const numPlayersInput = $('numPlayers');
-const createRoomBtn = $('createRoomBtn');
-const joinRoomBtn = $('joinRoomBtn');
-const roomInfo = $('roomInfo');
-const inviteLink = $('inviteLink');
-const playersListEl = $('playersList');
-const playersCenterList = $('playersCenterList');
-
-const roomNumberEl = $('roomNumber');
-const roleDisplay = $('roleDisplay');
-const wordDisplay = $('wordDisplay');
-const categorySelect = $('categorySelect');
-const startGameBtn = $('startGameBtn');
-const nextTurnBtn = $('nextTurnBtn');
-const enableVoteBtn = $('enableVoteBtn');
-const endGameBtn = $('endGameBtn');
-const timerEl = $('timer');
-const roundInfoEl = $('roundInfo');
-
-const impostorChatContainer = $('impostorChatContainer');
-const impostorChat = $('impostorChat');
-const impostorMsg = $('impostorMsg');
-const sendImpostor = $('sendImpostor');
-
-const voteRows = $('voteRows');
-const voteSubmitBtn = $('voteSubmitBtn');
-const votingStatus = $('votingStatus');
-
-const guestPanel = $('inviteLoginPanel');
-const guestNameInput = $('guestName');
-const guestRoomNumberInput = $('guestRoomNumber');
-const guestJoinBtn = $('guestJoinBtn');
-const guestCancelBtn = $('guestCancelBtn');
-
-/* ========== Categorías completas ========== */
+/* === Categorías: 30 categorías x 25 palabras cada una === */
 const categories = {
   frutas: ["Manzana","Banana","Pera","Fresa","Naranja","Sandía","Mango","Kiwi","Uva","Cereza","Melón","Papaya","Piña","Durazno","Ciruela","Frambuesa","Arándano","Limón","Mandarina","Pomelo","Coco","Granada","Higo","Litchi","Guayaba"],
   animales: ["Perro","Gato","León","Tigre","Elefante","Jirafa","Cebra","Mono","Lobo","Oso","Rinoceronte","Hipopótamo","Conejo","Caballo","Vaca","Cerdo","Oveja","Pato","Gallina","Pez","Tortuga","Serpiente","Cocodrilo","Loro","Murciélago"],
@@ -273,451 +196,503 @@ const categories = {
   tecnologia: ["Computadora","Internet","Robot","Inteligencia Artificial","Smartphone","Tablet","Redes","Cámara","Impresora","Dron","Software","Hardware","Aplicación","WiFi","Bluetooth","Ciberseguridad","Procesador","Memoria","Disco Duro","Pantalla","Teclado","Ratón","Auriculares","Monitor","Servidor"],
   transporte: ["Coche","Bicicleta","Avión","Tren","Barco","Autobús","Moto","Camión","Submarino","Helicóptero","Tranvía","Metro","Monopatín","Patinete","Taxi","Furgoneta","Tractor","Caravana","Jet","Globo","Velero","Remo","Lancha","Ferry","Teleférico"],
   deportes: ["Fútbol","Baloncesto","Tenis","Béisbol","Golf","Natación","Boxeo","Rugby","Voleibol","Ciclismo","Atletismo","Esquí","Snowboard","Surf","Hockey","Skate","Karate","Taekwondo","Judo","Ping Pong","Bolos","Motocross","Escalada","Paracaidismo","Lucha libre"],
+  animales_domesticos: ["Perro","Gato","Conejo","Pez","Hamster","Cobaya","Canario","Loro","Tortuga","Serpiente","Gallo","Pato","Caballo","Cabra","Oveja","Cerdo","Ratón","Hurón","Camaleón","Erizo","Gato Siamés","Pastor Alemán","Bulldog","Persa","Acuario"],
   comidas: ["Pizza","Hamburguesa","Sushi","Tacos","Paella","Ensalada","Pollo","Carne","Pasta","Arroz","Sopa","Pescado","Fruta","Verdura","Helado","Chocolate","Pan","Queso","Huevos","Galleta","Cereal","Crepa","Tortilla","Arepa","Empanada"],
   bebidas: ["Agua","Jugo","Café","Té","Cerveza","Vino","Refresco","Leche","Smoothie","Batido","Champán","Vodka","Whisky","Ron","Tequila","Sidra","Limonada","Mojito","Coca-Cola","Fanta","Sprite","Ginger Ale","Matcha","Mate","Chai"],
-  estaciones: ["Primavera","Verano","Otoño","Invierno","Lluviosa","Seca","Fría","Caliente","Templada","Nevada","Húmeda","Vientos","Soleada","Nublada","Tormenta","Trueno","Relámpago","Aurora","Crepúsculo","Mañana","Tarde","Noche","Medianoche","Amanecer","Atardecer"]
+  estaciones: ["Primavera","Verano","Otoño","Invierno","Lluviosa","Seca","Fría","Caliente","Templada","Nevada","Húmeda","Vientos","Soleada","Nublada","Tormenta","Trueno","Relámpago","Aurora","Crepúsculo","Mañana","Tarde","Noche","Medianoche","Amanecer","Atardecer"],
+  instrumentos: ["Guitarra","Piano","Batería","Violín","Flauta","Saxofón","Trompeta","Clarinete","Chelo","Arpa","Órgano","Acordeón","Tambor","Ukelele","Trombón","Corneta","Gong","Marimba","Xilófono","Castañuelas","Banjo","Timbal","Mandolina","Oboe","Fagot"],
+  herramientas: ["Martillo","Destornillador","Taladro","Sierra","Alicate","Llave inglesa","Cúter","Cinta métrica","Nivel","Pala","Rastrillo","Tornillo","Clavo","Soplete","Taladro percutor","Tenazas","Sierra circular","Escuadra","Compás","Lima","Broca","Prensa","Sargentos","Flexómetro","Cepillo"],
+  ropa: ["Camisa","Pantalón","Zapatos","Calcetines","Sombrero","Gorra","Chaqueta","Abrigo","Falda","Vestido","Cinturón","Bufanda","Guantes","Traje","Corbata","Botas","Sandalias","Chaleco","Pijama","Bata","Leggings","Shorts","Jeans","Camiseta","Sudadera"],
+  animales_salvajes: ["León","Tigre","Elefante","Jirafa","Cebra","Hipopótamo","Rinoceronte","Oso","Lobo","Cocodrilo","Canguro","Jaguar","Pantera","Lince","Zorro","Búho","Águila","Lémur","Orangután","Gorila","Bisonte","Antílope","Hiena","Coyote","Serpiente"],
+  emociones: ["Felicidad","Tristeza","Enojo","Miedo","Sorpresa","Amor","Odio","Alegría","Ansiedad","Confusión","Vergüenza","Celos","Frustración","Nostalgia","Entusiasmo","Orgullo","Satisfacción","Desesperación","Paz","Calma","Inquietud","Gratitud","Desdén","Curiosidad","Asombro"],
+  muebles: ["Silla","Mesa","Cama","Armario","Escritorio","Estantería","Sofá","Lámpara","Banco","Taburete","Aparador","Cómoda","Vitrina","Perchero","Sillón","Mueble TV","Mesita","Zapatero","Mueble de cocina","Cama doble","Litera","Cuna","Butaca","Silla de oficina","Banco de trabajo"],
+  transporte_publico: ["Autobús","Metro","Tren","Tranvía","Taxi","Uber","Mototaxi","Teleférico","Ferry","Bote","Tren ligero","Bus turístico","Trolebús","Monorraíl","Vagón","Coche compartido","Scooter","Motocicleta","Bicicleta pública","Camión urbano","Barco","Lancha","Furgoneta","Submarino","Helicóptero"],
+  herramientas_cocina: ["Cuchillo","Tenedor","Cuchara","Cucharón","Espátula","Colador","Olla","Sartén","Batidora","Procesador","Rallador","Tijeras","Mortero","Tabla de cortar","Exprimidor","Cazo","Cucharita","Pinzas","Termómetro","Ramequin","Fuente","Recipiente","Moldes","Molde de pan","Cafetera"],
+  tecnologia_antigua: ["Teléfono fijo","Máquina de escribir","Disquete","Televisor CRT","Radio antigua","Fax","Gramófono","Proyector","VHS","Walkman","Discman","Cámara analógica","Reloj de arena","Pizarra","Calculadora mecánica","Telégrafo","Linterna","Cinta VHS","Teléfono rotativo","Reproductor DVD","Discoteca","Cámara Polaroid","Videocámara","Scanner","Proyector de diapositivas"],
+  politica: ["Joe Biden","Barack Obama","Angela Merkel","Nelson Mandela","Vladimir Putin","Winston Churchill","Margaret Thatcher","Mahatma Gandhi","Emmanuel Macron","Xi Jinping","Donald Trump","Fidel Castro","Jair Bolsonaro","Justin Trudeau","Jacinda Ardern","Abraham Lincoln","Franklin Roosevelt","Theodore Roosevelt","John F. Kennedy","Hillary Clinton","Kamala Harris","Benjamin Netanyahu","Catherine de Medici","Cleopatra","Napoleón"],
+  futbol: ["Lionel Messi","Cristiano Ronaldo","Diego Maradona","Pelé","Zinedine Zidane","Neymar","Kylian Mbappé","Johan Cruyff","Ronaldinho","David Beckham","Sergio Ramos","Luka Modrić","Paolo Maldini","Thierry Henry","Andrés Iniesta","Luis Suárez","Robert Lewandowski","Eden Hazard","Harry Kane","Gianluigi Buffon","Wayne Rooney","Karim Benzema","Marcelo","Ronaldo Nazário","Iker Casillas"]
 };
 
-/* ========== Utilidades ========== */
-const uid = ()=> 'p_'+Date.now()+'_'+Math.floor(Math.random()*9999);
-const ceilImpostors = n => Math.ceil(n / 7);
+/* === Helpers y referencias DOM === */
+const $ = id => document.getElementById(id);
+const playerNameInput = $('playerName');
+const joinRoomInput = $('joinRoomNumber');
+const numPlayersInput = $('numPlayers');
+const createRoomBtn = $('createRoomBtn');
+const joinRoomBtn = $('joinRoomBtn');
+const roomInfo = $('roomInfo');
+const inviteLink = $('inviteLink');
+const playersListEl = $('playersList');
+const playersCenterList = $('playersCenterList');
+const roomNumberEl = $('roomNumber');
+const roleDisplay = $('roleDisplay');
+const wordDisplay = $('wordDisplay');
+const categorySelect = $('categorySelect');
+const startGameBtn = $('startGameBtn');
+const nextTurnBtn = $('nextTurnBtn');
+const enableVoteBtn = $('enableVoteBtn');
+const endGameBtn = $('endGameBtn');
+const timerEl = $('timer');
+const roundInfoEl = $('roundInfo');
+const impostorChatContainer = $('impostorChatContainer');
+const impostorChat = $('impostorChat');
+const impostorMsg = $('impostorMsg');
+const sendImpostor = $('sendImpostor');
+const voteRows = $('voteRows');
+const voteSubmitBtn = $('voteSubmitBtn');
+const votingStatus = $('votingStatus');
 
-/* ========== UI helpers ========== */
-function setText(id, txt){ const el = document.getElementById(id); if(el) el.textContent = txt; }
-function $(id){ return document.getElementById(id); }
+/* === Estado local === */
+let room = null;
+let playerId = null;
+let playerName = null;
+let isAdmin = false;
+let players = []; // local snapshot array
+let currentTurn = null;
+let turnEndTimestamp = null;
+let timerInterval = null;
+let votingActive = false;
+let myVote = null;
 
-/* ========== Listeners básicos para UI ========== */
-(function populateCategories(){
-  const keys = Object.keys(categories);
-  categorySelect.innerHTML = '';
-  keys.forEach(k=>{
-    const opt = document.createElement('option'); opt.value = k; opt.textContent = k;
-    categorySelect.appendChild(opt);
-  });
-})();
+/* === Llenar categorías === */
+for(const cat in categories){
+  const opt = document.createElement('option');
+  opt.value = cat;
+  opt.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+  categorySelect.appendChild(opt);
+}
 
-/* ========== Funciones principales ========== */
+/* === Util === */
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function now(){ return Date.now(); }
 
-// cuando el admin crea la sala
-createRoomBtn.addEventListener('click', async ()=>{
-  const name = playerNameInput.value.trim();
-  const req = parseInt(numPlayersInput.value);
-  if(!name || !req || req < 2) return alert('Ingresa nombre y número de jugadores válido (mínimo 2).');
-
-  // asignar variables locales
-  playerName = name;
+/* ===========================
+   Crear / Unirse a sala
+   =========================== */
+createRoomBtn.addEventListener('click', ()=>{
+  playerName = playerNameInput.value.trim() || "Anon";
   playerId = uid();
   isAdmin = true;
+  const required = parseInt(numPlayersInput.value) || 4;
+  const roomId = String(Math.floor(1000 + Math.random()*9000));
+  room = roomId;
 
-  // generar número de sala y convertir a string
-  roomNumber = String(Math.floor(1000 + Math.random() * 9000));
-  requiredPlayers = req;
-
-  // escribir meta y registrar admin como primer jugador
-  await set(ref(db, `rooms/${roomNumber}/meta`), {
-    adminId: playerId,
-    requiredPlayers: req,
-    turnOrder: [],
-    currentTurnIndex: 0,
-    roundsPassed: 0,
-    votingEnabled: false
+  // inicializar estructura de sala
+  db.ref('rooms/'+room+'/meta').set({
+    requiredPlayers: required,
+    status: 'lobby',
+    category: null,
+    currentTurnPlayer: null,
+    turnEnd: null,
+    voting: false
+  });
+  // crear jugador admin
+  db.ref('rooms/'+room+'/players/'+playerId).set({
+    name: playerName,
+    admin: true,
+    role: null,
+    word: null,
+    alive: true,
+    votedFor: null
   });
 
-  await set(ref(db, `rooms/${roomNumber}/players/${playerId}`), {name: playerName, number: 1});
-
-  // actualizar UI inmediatamente (no esperar al listener)
-  setText('roomInfo', `Sala ${roomNumber} • requerido: ${requiredPlayers}`);
-  setText('roomNumber', roomNumber);
-  inviteLink.textContent = `${location.origin}${location.pathname}?room=${roomNumber}`;
-  inviteLink.href = `${location.origin}${location.pathname}?room=${roomNumber}`;
-
-  // iniciar listeners
-  startListeningRoom(roomNumber);
+  roomInfo.textContent = room;
+  inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
+  roomNumberEl.textContent = room;
+  listenRoom(room);
 });
 
-// unirse a sala (botón del panel principal)
-joinRoomBtn.addEventListener('click', async ()=>{
-  const name = playerNameInput.value.trim();
-  const joinNum = (document.getElementById('joinRoomNumber')?.value || '').toString().trim();
-  if(!name || !joinNum) return alert('Nombre y número de sala requeridos.');
-  // check meta exists
-  const metaSnap = await get(ref(db, `rooms/${joinNum}/meta`));
-  if(!metaSnap.exists()) return alert('Sala no existe.');
-  const meta = metaSnap.val();
-  const playersSnap = await get(ref(db, `rooms/${joinNum}/players`));
-  const count = playersSnap.exists() ? Object.keys(playersSnap.val()).length : 0;
-  if(count >= meta.requiredPlayers) return alert('La sala ya tiene los jugadores requeridos.');
-  playerName = name;
+joinRoomBtn.addEventListener('click', ()=>{
+  playerName = playerNameInput.value.trim() || "Anon";
   playerId = uid();
   isAdmin = false;
-  roomNumber = joinNum;
-  await set(ref(db, `rooms/${roomNumber}/players/${playerId}`), {name: playerName, number: count+1});
-  // actualizar UI minimal
-  setText('roomNumber', roomNumber);
-  inviteLink.textContent = `${location.origin}${location.pathname}?room=${roomNumber}`;
-  inviteLink.href = `${location.origin}${location.pathname}?room=${roomNumber}`;
-  startListeningRoom(roomNumber);
-});
+  const joinId = joinRoomInput.value.trim();
+  if(!joinId){ alert("Ingresa número de sala"); return; }
+  room = joinId;
 
-/* Guest join (panel que aparece si alguien abre ?room=XXXX) */
-guestJoinBtn.addEventListener('click', async ()=>{
-  const name = guestNameInput.value.trim();
-  const room = guestRoomNumberInput.value.trim();
-  if(!name || !room) return alert('Ingresa nombre y número de sala.');
-  const metaSnap = await get(ref(db, `rooms/${room}/meta`));
-  if(!metaSnap.exists()) return alert('Sala no existe.');
-  const meta = metaSnap.val();
-  const playersSnap = await get(ref(db, `rooms/${room}/players`));
-  const count = playersSnap.exists() ? Object.keys(playersSnap.val()).length : 0;
-  if(count >= meta.requiredPlayers) return alert('La sala ya tiene los jugadores requeridos.');
-  // registrar jugador
-  playerName = name;
-  playerId = uid();
-  isAdmin = false;
-  roomNumber = room;
-  await set(ref(db, `rooms/${room}/players/${playerId}`), {name: playerName, number: count+1});
-  // ocultar panel invitado y mostrar grid
-  guestPanel.style.display = 'none';
-  document.getElementById('mainGrid').style.display = 'grid';
-  document.querySelector('header').style.display = 'flex';
-  setText('roomNumber', roomNumber);
-  inviteLink.textContent = `${location.origin}${location.pathname}?room=${roomNumber}`;
-  inviteLink.href = `${location.origin}${location.pathname}?room=${roomNumber}`;
-  startListeningRoom(roomNumber);
-});
-guestCancelBtn.addEventListener('click', ()=>{
-  guestPanel.style.display = 'none';
-  document.getElementById('mainGrid').style.display = 'grid';
-  document.querySelector('header').style.display = 'flex';
-});
-
-/* startListeningRoom: attach all listeners for the room */
-function startListeningRoom(room){
-  // players listener
-  onValue(ref(db, `rooms/${room}/players`), snap=>{
-    const data = snap.val() || {};
-    players = Object.entries(data).map(([id,obj])=>({
-      id, name: obj.name, number: obj.number || null, role: obj.role || null, word: obj.word || null, category: obj.category || null
-    }));
-    players.sort((a,b)=> (a.number||0)-(b.number||0));
-    renderPlayers();
-    afterPlayersSync();
+  db.ref('rooms/'+room+'/players/'+playerId).set({
+    name: playerName,
+    admin: false,
+    role: null,
+    word: null,
+    alive: true,
+    votedFor: null
   });
 
-  // meta listener
-  onValue(ref(db, `rooms/${room}/meta`), snap=>{
-    const meta = snap.val() || {};
-    turnOrder = meta.turnOrder || [];
-    currentTurnIndex = meta.currentTurnIndex || 0;
-    roundsPassed = meta.roundsPassed || 0;
-    votingEnabled = !!meta.votingEnabled;
-    requiredPlayers = meta.requiredPlayers || requiredPlayers;
-    setText('roomInfo', `Sala ${room} • requerido: ${requiredPlayers}`);
-    setText('roomNumber', room);
+  roomInfo.textContent = room;
+  inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
+  roomNumberEl.textContent = room;
+  listenRoom(room);
+});
+
+/* Reconectar si room en URL */
+(function initFromURL(){
+  const p = new URLSearchParams(window.location.search);
+  if(p.has('room')){
+    const r = p.get('room');
+    room = r;
+    roomInfo.textContent = room;
     inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
-    inviteLink.href = `${location.origin}${location.pathname}?room=${room}`;
-    setText('roundInfo', `Rondas completadas: ${roundsPassed}`);
-    setText('votingStatus', votingEnabled ? 'Habilitada' : 'Bloqueada');
-    updateTurnDisplay();
-    updateVoteUI();
+    roomNumberEl.textContent = room;
+    // don't set player until they press join or create
+  }
+})();
+
+/* ===========================
+   Escuchar datos de la sala
+   =========================== */
+function listenRoom(roomId){
+  // players
+  db.ref('rooms/'+roomId+'/players').on('value', snap=>{
+    const val = snap.val() || {};
+    players = Object.entries(val).map(([id,p])=>({id,...p}));
+    renderPlayers();
+    // If our player is present, update local admin flag
+    const me = players.find(p=>p.id===playerId);
+    if(me) isAdmin = !!me.admin;
   });
 
-  // votes listener
-  onValue(ref(db, `rooms/${room}/votes`), snap=>{
-    const votes = snap.val() || {};
-    renderVoteBars(votes);
-    // if all players voted and votingEnabled, process votes
-    if(votingEnabled && players.length > 0 && Object.keys(votes).length === players.length){
-      processVotes(votes);
+  // meta
+  db.ref('rooms/'+roomId+'/meta').on('value', snap=>{
+    const m = snap.val();
+    if(!m) return;
+    // update category display / voting state / turn
+    votingActive = !!m.voting;
+    votingStatus.textContent = votingActive ? 'Activa' : 'Bloqueada';
+    // turn info
+    currentTurn = m.currentTurnPlayer || null;
+    turnEndTimestamp = m.turnEnd || null;
+    if(currentTurn){
+      const p = players.find(x=>x.id===currentTurn);
+      $('turnInfo').textContent = p? p.name : '—';
+      startLocalTimer();
+    }
+    // category
+    if(m.category) categorySelect.value = m.category;
+    // show role/word for me (will be updated by players listener too)
+    const me = players.find(p=>p.id===playerId);
+    if(me){
+      roleDisplay.textContent = me.role || '—';
+      wordDisplay.textContent = (me.role==='Impostor')? 'CATEGORÍA' : (me.word || '—');
+      impostorChatContainer.style.display = (me.role==='Impostor') ? 'block' : 'none';
     }
   });
 
-  // impostor chat listener
-  onValue(ref(db, `rooms/${room}/impostorChat`), snap=>{
-    const msgs = snap.val() || {};
-    renderImpostorChat(msgs);
+  // impostor chat
+  db.ref('rooms/'+roomId+'/impostorChat').on('value', snap=>{
+    const data = snap.val() || {};
+    impostorChat.innerHTML = '';
+    Object.values(data).forEach(msg=>{
+      const d = document.createElement('div');
+      d.className = 'msg' + (msg.fromId===playerId ? ' self' : '');
+      d.textContent = `${msg.fromName}: ${msg.text}`;
+      impostorChat.appendChild(d);
+    });
+    impostorChat.scrollTop = impostorChat.scrollHeight;
+  });
+
+  // votes (update bars)
+  db.ref('rooms/'+roomId+'/votes').on('value', snap=>{
+    const data = snap.val() || {};
+    updateVoteBars(data);
+    // If voting active and all alive players voted -> finish votes
+    if(votingActive){
+      const aliveCount = players.filter(p=>p.alive).length;
+      const votesCount = Object.keys(data).length;
+      if(votesCount >= aliveCount){
+        concludeVoting(data);
+      }
+    }
   });
 }
 
-/* render players lists */
+/* ===========================
+   Render UI helpers
+   =========================== */
 function renderPlayers(){
   playersListEl.innerHTML = '';
   playersCenterList.innerHTML = '';
   players.forEach(p=>{
     const li = document.createElement('li');
-    li.className = (turnOrder[currentTurnIndex] === p.id) ? 'active' : '';
-    li.innerHTML = `<div style="font-weight:600">${p.name}${p.number? ' #'+p.number : ''}</div>`;
+    li.textContent = p.name + (p.admin ? ' (admin)' : '') + (p.alive ? '' : ' ✖');
     playersListEl.appendChild(li);
-
-    const li2 = document.createElement('li');
-    li2.className = (turnOrder[currentTurnIndex] === p.id) ? 'active' : '';
-    li2.innerHTML = `<div style="font-weight:600">${p.name}${p.number? ' #'+p.number : ''}</div>`;
-    playersCenterList.appendChild(li2);
+    playersCenterList.appendChild(li.cloneNode(true));
   });
 }
 
-/* After players sync, update local displays (única definición) */
-function afterPlayersSync(){
-  buildVoteRows();
-  const me = players.find(p=>p.id === playerId);
-  if(me){
-    setText('roleDisplay', me.role || '—');
-    if(me.role === 'jugador') setText('wordDisplay', me.word || '—');
-    else if(me.role === 'impostor') setText('wordDisplay', `Categoría: ${me.category || '—'}`);
-    // impostor chat visibility
-    if(me.role === 'impostor'){
-      impostorChatContainer.style.display = 'block';
+/* ===========================
+   Start game: roles & words
+   =========================== */
+startGameBtn.addEventListener('click', async ()=>{
+  if(!room) return alert('No estás en ninguna sala');
+  if(!isAdmin) return alert('Sólo admin puede iniciar');
+  // check players count
+  const metaSnap = await db.ref('rooms/'+room+'/meta').once('value');
+  const meta = metaSnap.val() || {};
+  const required = meta.requiredPlayers || 4;
+  if(players.length < required) return alert(`Se necesitan ${required} jugadores para iniciar`);
+  // pick category
+  const category = categorySelect.value || Object.keys(categories)[0];
+  const wordsPool = (categories[category] || []).slice();
+  // shuffle players
+  const shuffled = players.slice().sort(()=>Math.random()-0.5);
+  // impostor count: at least 1, roughly players/4
+  const impostorCount = Math.max(1, Math.floor(shuffled.length / 4));
+  const impostors = shuffled.slice(0, impostorCount).map(p=>p.id);
+  // choose a secret word for civils and set category for impostors
+  const secretWord = wordsPool.splice(Math.floor(Math.random()*wordsPool.length),1)[0];
+  // assign
+  const updates = {};
+  shuffled.forEach((p,i)=>{
+    if(impostors.includes(p.id)){
+      updates['rooms/'+room+'/players/'+p.id+'/role'] = 'Impostor';
+      updates['rooms/'+room+'/players/'+p.id+'/word'] = null;
     } else {
-      impostorChatContainer.style.display = 'none';
+      // pick a distinct word if possible
+      const w = wordsPool.length ? wordsPool.splice(Math.floor(Math.random()*wordsPool.length),1)[0] : secretWord;
+      updates['rooms/'+room+'/players/'+p.id+'/role'] = 'Jugador';
+      updates['rooms/'+room+'/players/'+p.id+'/word'] = w;
+    }
+    updates['rooms/'+room+'/players/'+p.id+'/alive'] = true;
+    updates['rooms/'+room+'/players/'+p.id+'/votedFor'] = null;
+  });
+  // update meta: set category, status, set first turn to shuffled[0]
+  updates['rooms/'+room+'/meta/category'] = category;
+  updates['rooms/'+room+'/meta/status'] = 'playing';
+  updates['rooms/'+room+'/meta/currentTurnPlayer'] = shuffled[0].id;
+  updates['rooms/'+room+'/meta/turnEnd'] = now() + 60000; // 60s from now
+  updates['rooms/'+room+'/meta/voting'] = false;
+  // clear votes & chat
+  updates['rooms/'+room+'/votes'] = null;
+  updates['rooms/'+room+'/impostorChat'] = null;
+
+  await db.ref().update(updates);
+});
+
+/* ===========================
+   Timer and turns
+   =========================== */
+function startLocalTimer(){
+  clearInterval(timerInterval);
+  if(!turnEndTimestamp) { timerEl.textContent = '—'; return; }
+  function tick(){
+    const left = Math.max(0, Math.floor((turnEndTimestamp - now())/1000));
+    timerEl.textContent = left + 's';
+    if(left <= 0){
+      clearInterval(timerInterval);
+      // Only admin should advance turn automatically to avoid conflicts
+      if(isAdmin) adminNextTurn();
     }
   }
-  updateVoteUI();
+  // initial set from stored timestamp by converting if turnEndTimestamp is number
+  if(typeof turnEndTimestamp !== 'number'){
+    // fetch fresh turnEnd from DB
+    db.ref('rooms/'+room+'/meta/turnEnd').once('value').then(s=>{ turnEndTimestamp = s.val() || null; });
+  }
+  tick();
+  timerInterval = setInterval(()=>{ 
+    // refreshing cached turnEnd (in case admin updated)
+    db.ref('rooms/'+room+'/meta/turnEnd').once('value').then(s=>{ turnEndTimestamp = s.val(); tick(); });
+  }, 1000);
 }
 
-/* START GAME (admin) */
-startGameBtn.addEventListener('click', async ()=>{
-  if(!isAdmin) return alert('Solo el admin puede iniciar.');
-  // read players & meta
-  const playersSnap = await get(ref(db, `rooms/${roomNumber}/players`));
-  const metaSnap = await get(ref(db, `rooms/${roomNumber}/meta`));
-  const meta = metaSnap.val() || {};
-  const required = meta.requiredPlayers;
-  const list = playersSnap.val() || {};
-  const count = Object.keys(list).length;
-  if(count !== required) return alert(`Esperando exactamente ${required} jugadores. Actualmente: ${count}`);
-  // build ordered turnOrder by number
-  const ordered = Object.entries(list).map(([id,obj])=>({id, num: obj.number || 999})).sort((a,b)=>a.num-b.num).map(x=>x.id);
-  // impostors count scalable
-  const impostors = ceilImpostors(ordered.length);
-  // choose impostor positions but avoid index 0
-  const pool = ordered.slice();
-  const availableIdx = [];
-  for(let i=1;i<pool.length;i++) availableIdx.push(i);
-  const chosenPos = [];
-  while(chosenPos.length < impostors && availableIdx.length>0){
-    const pickIndex = Math.floor(Math.random()*availableIdx.length);
-    const pick = availableIdx.splice(pickIndex,1)[0];
-    chosenPos.push(pick);
-  }
-  // choose category
-  const keys = Object.keys(categories);
-  const chosenCategory = keys[Math.floor(Math.random()*keys.length)];
-  // prepare updates
-  const updates = {};
-  for(let i=0;i<pool.length;i++){
-    const id = pool[i];
-    const role = chosenPos.includes(i) ? 'impostor' : 'jugador';
-    const word = role === 'jugador' ? categories[chosenCategory][Math.floor(Math.random()*categories[chosenCategory].length)] : null;
-    updates[`rooms/${roomNumber}/players/${id}/role`] = role;
-    updates[`rooms/${roomNumber}/players/${id}/word`] = word;
-    updates[`rooms/${roomNumber}/players/${id}/category`] = chosenCategory;
-  }
-  // set turnOrder & meta
-  updates[`rooms/${roomNumber}/meta/turnOrder`] = pool;
-  updates[`rooms/${roomNumber}/meta/currentTurnIndex`] = 0;
-  updates[`rooms/${roomNumber}/meta/roundsPassed`] = 0;
-  updates[`rooms/${roomNumber}/meta/votingEnabled`] = false;
-  updates[`rooms/${roomNumber}/meta/requiredPlayers`] = required;
-  await update(ref(db), updates);
-  // clear votes & chat
-  await remove(ref(db, `rooms/${roomNumber}/votes`));
-  await remove(ref(db, `rooms/${roomNumber}/impostorChat`));
-  alert(`Juego iniciado. Impostores: ${impostors}. Categoría: ${chosenCategory}`);
+nextTurnBtn.addEventListener('click', ()=>{
+  if(!isAdmin) return alert('Solo admin puede cambiar turno');
+  adminNextTurn();
 });
 
-/* NEXT TURN (admin manual) */
-nextTurnBtn.addEventListener('click', async ()=>{
-  if(!isAdmin) return alert('Solo el admin puede avanzar turnos.');
-  const metaRef = ref(db, `rooms/${roomNumber}/meta`);
-  const metaSnap = await get(metaRef);
-  const meta = metaSnap.val() || {};
-  const order = meta.turnOrder || [];
-  let idx = (meta.currentTurnIndex || 0) + 1;
-  if(idx >= order.length){
-    // completed a full pass
-    if((meta.roundsPassed || 0) === 0){
-      await update(metaRef, {currentTurnIndex: 0, roundsPassed: 1});
-      alert('Primera vuelta completada. Iniciando segunda vuelta.');
-      return;
-    } else {
-      // after second pass, enable voting
-      await update(metaRef, {currentTurnIndex: 0, roundsPassed: 2, votingEnabled: true});
-      alert('Segunda vuelta completada. Votación habilitada.');
-      return;
+function adminNextTurn(){
+  if(!room) return;
+  const metaRef = db.ref('rooms/'+room+'/meta');
+  metaRef.once('value').then(snap=>{
+    const m = snap.val() || {};
+    const cur = m.currentTurnPlayer || null;
+    // build list of alive players ids in same order as "players" array
+    const alive = players.filter(p=>p.alive).map(p=>p.id);
+    if(alive.length === 0) return;
+    let idx = alive.indexOf(cur);
+    if(idx < 0) idx = 0;
+    const nextIdx = (idx + 1) % alive.length;
+    const nextId = alive[nextIdx];
+
+    // Control de rondas: incrementar si volvemos al primer jugador
+    let rounds = m.rounds || 0;
+    if(nextIdx === 0){
+      rounds++;
     }
-  } else {
-    await update(metaRef, {currentTurnIndex: idx});
-  }
+
+    const updates = {
+      currentTurnPlayer: nextId,
+      turnEnd: now() + 60000,
+      rounds: rounds
+    };
+
+    // Activar votación automáticamente si completamos 2 rondas
+    if(rounds >= 2){
+      updates.voting = true;   // habilita votación
+      updates.rounds = 0;      // reinicia contador para la siguiente serie de turnos
+    }
+
+    metaRef.update(updates);
+  });
+}
+
+/* ===========================
+   Chat impostores
+   =========================== */
+sendImpostor.addEventListener('click', ()=>{
+  const text = impostorMsg.value.trim();
+  if(!text || !room) return;
+  db.ref('rooms/'+room+'/impostorChat').push({
+    fromId: playerId,
+    fromName: playerName,
+    text: text,
+    ts: now()
+  });
+  impostorMsg.value = '';
 });
 
-/* Forzar votación (admin) */
-enableVoteBtn.addEventListener('click', async ()=>{
-  if(!isAdmin) return alert('Solo admin puede forzar votación.');
-  await update(ref(db, `rooms/${roomNumber}/meta`), {votingEnabled: true});
+/* ===========================
+   Voting
+   =========================== */
+enableVoteBtn.addEventListener('click', ()=>{
+  if(!isAdmin) return alert('Solo admin puede forzar votación');
+  db.ref('rooms/'+room+'/meta').update({ voting: true });
+  // clear previous votes
+  db.ref('rooms/'+room+'/votes').set(null);
+  votingActive = true;
+  votingStatus.textContent = 'Activa';
+  buildVoteUI();
 });
 
-/* Vote UI builder */
-function buildVoteRows(){
+function buildVoteUI(){
   voteRows.innerHTML = '';
-  players.forEach(p=>{
+  players.filter(p=>p.alive).forEach(p=>{
+    // can't vote for self
     const row = document.createElement('div');
     row.className = 'voteRow';
-    row.dataset.id = p.id;
-    const name = document.createElement('div'); name.className='voteName'; name.textContent = p.name;
-    const bar = document.createElement('div'); bar.className='voteBar';
-    const fill = document.createElement('div'); fill.className='voteFill'; fill.style.width='0%';
-    const count = document.createElement('div'); count.className='voteCount'; count.textContent='0';
-    bar.appendChild(fill);
-    row.appendChild(name);
-    row.appendChild(bar);
-    row.appendChild(count);
-    // click to select candidate (only if votingEnabled true)
+    row.dataset.target = p.id;
+    row.innerHTML = `<div class="voteName">${p.name}</div><div class="voteBar"><div class="voteFill"></div></div><div class="voteCount">0</div>`;
     row.addEventListener('click', ()=>{
-      if(!votingEnabled) return;
-      document.querySelectorAll('.voteRow').forEach(r=> r.style.outline='none');
-      row.style.outline = '3px solid rgba(124,227,180,0.12)';
-      localVote = p.id;
+      if(!votingActive) return;
+      if(p.id === playerId) return;
+      myVote = p.id;
+      // mark selection visually
+      Array.from(voteRows.children).forEach(r=>r.classList.remove('active'));
+      row.classList.add('active');
       voteSubmitBtn.disabled = false;
     });
     voteRows.appendChild(row);
   });
-}
-
-/* Render vote bars from votes object */
-function renderVoteBars(votes){
-  const tally = {};
-  Object.values(votes || {}).forEach(v => tally[v] = (tally[v]||0)+1);
-  const total = players.length || 1;
-  document.querySelectorAll('.voteRow').forEach(r=>{
-    const id = r.dataset.id;
-    const count = tally[id] || 0;
-    const pct = Math.round((count/total)*100);
-    const fill = r.querySelector('.voteFill');
-    const cntEl = r.querySelector('.voteCount');
-    if(fill) fill.style.width = pct + '%';
-    if(cntEl) cntEl.textContent = count;
-  });
-}
-
-/* Vote submit by player */
-voteSubmitBtn.addEventListener('click', async ()=>{
-  if(!votingEnabled) return alert('Votación no habilitada.');
-  if(!localVote) return alert('Selecciona a quién votar.');
-  await set(ref(db, `rooms/${roomNumber}/votes/${playerId}`), localVote);
   voteSubmitBtn.disabled = true;
-  document.querySelectorAll('.voteRow').forEach(r=> r.style.pointerEvents='none');
+}
+
+voteSubmitBtn.addEventListener('click', ()=>{
+  if(!myVote || !room) return;
+  db.ref('rooms/'+room+'/votes/'+playerId).set(myVote);
+  voteSubmitBtn.disabled = true;
 });
 
-/* Process votes once all in (mejorada: maneja empates, resetea, elimina) */
-async function processVotes(votes){
-  const tally = {};
-  Object.values(votes).forEach(v => tally[v] = (tally[v]||0)+1);
-
-  // encontrar el máximo
-  let max = -1;
-  let maxId = null;
-  for(const [id,c] of Object.entries(tally)){
-    if(c > max){ max = c; maxId = id; }
-  }
-
-  // comprobar empates
-  const numMax = Object.values(tally).filter(v => v === max).length;
-  if(numMax > 1){
-    alert('❗ Hubo un empate en la votación. Nadie es expulsado.');
-    // reset votos & estado
-    await remove(ref(db, `rooms/${roomNumber}/votes`));
-    await update(ref(db, `rooms/${roomNumber}/meta`), {votingEnabled: false, roundsPassed: 0, currentTurnIndex: 0});
-    return;
-  }
-
-  const eliminated = players.find(p=>p.id === maxId);
-  const wasImpostor = eliminated && eliminated.role === 'impostor';
-  if(eliminated){
-    alert(`Jugador eliminado: ${eliminated.name}\n¿Era impostor? ${wasImpostor ? 'Sí' : 'No'}`);
-    await remove(ref(db, `rooms/${roomNumber}/players/${eliminated.id}`));
-  } else {
-    alert('Nadie fue eliminado');
-  }
-  // reset votos & votingEnabled & roundsPassed, currentTurnIndex
-  await remove(ref(db, `rooms/${roomNumber}/votes`));
-  await update(ref(db, `rooms/${roomNumber}/meta`), {votingEnabled: false, roundsPassed: 0, currentTurnIndex: 0});
+/* update vote bars based on votes object */
+function updateVoteBars(votesObj){
+  const counts = {};
+  Object.values(votesObj || {}).forEach(v=> counts[v] = (counts[v]||0)+1);
+  Array.from(voteRows.children).forEach(row=>{
+    const id = row.dataset.target;
+    const count = counts[id] || 0;
+    const pct = Math.round((count / Math.max(1, players.filter(p=>p.alive).length)) * 100);
+    row.querySelector('.voteFill').style.width = pct + '%';
+    row.querySelector('.voteCount').textContent = count;
+  });
 }
 
-/* Impostor chat send */
-sendImpostor.addEventListener('click', async ()=>{
-  const text = impostorMsg.value.trim(); if(!text) return;
-  await push(ref(db, `rooms/${roomNumber}/impostorChat`), {name: playerName, id: playerId, text, ts: Date.now()});
-  impostorMsg.value = '';
+/* conclude voting: eliminate highest vote (ties: no elimination) */
+async function concludeVoting(votesObj){
+  if(!room) return;
+  // Only run once - flip voting meta to false
+  const metaSnap = await db.ref('rooms/'+room+'/meta').once('value');
+  const meta = metaSnap.val() || {};
+  if(!meta.voting) return; // already processed
+  // count
+  const counts = {};
+  Object.values(votesObj || {}).forEach(v=> counts[v] = (counts[v]||0)+1);
+  let max = 0, candidate = null;
+  for(const id in counts){
+    if(counts[id] > max){ max = counts[id]; candidate = id; }
+    else if(counts[id] === max) candidate = null; // tie -> no elimination
+  }
+  const updates = {};
+  if(candidate){
+    updates['rooms/'+room+'/players/'+candidate+'/alive'] = false;
+  }
+  updates['rooms/'+room+'/meta/voting'] = false;
+  updates['rooms/'+room+'/votes'] = null;
+  // clear players' votedFor fields
+  Object.keys(players || {}).forEach(p=>{
+    // handled by players listener if needed; optional
+  });
+  await db.ref().update(updates);
+  votingActive = false;
+  votingStatus.textContent = 'Bloqueada';
+  voteRows.innerHTML = '';
+}
+
+/* ===========================
+   Detect player changes and update local UI
+   =========================== */
+db.ref().on('value', ()=>{}); // keep connection alive (optional)
+
+/* Watch players to update role/word display for me and rounds */
+setInterval(()=>{ // fallback refresh UI frequently
+  const me = players.find(p=>p.id===playerId);
+  if(me){
+    roleDisplay.textContent = me.role || '—';
+    wordDisplay.textContent = (me.role==='Impostor') ? ('Categoría: ' + (categorySelect.value || '—')) : (me.word || '—');
+    impostorChatContainer.style.display = (me.role==='Impostor') ? 'block' : 'none';
+  }
+  // rounds completed
+  const rounds = parseInt(roundInfoEl.dataset.rounds || '0');
+  roundInfoEl.textContent = 'Rondas completadas: ' + rounds;
+}, 800);
+
+/* ===========================
+   Finalizar / Reiniciar
+   =========================== */
+endGameBtn.addEventListener('click', ()=>{
+  if(!isAdmin) return alert('Solo admin puede finalizar');
+  if(!room) return;
+  db.ref('rooms/'+room).remove();
+  location.reload();
 });
 
-/* Render impostor chat */
-function renderImpostorChat(msgs){
-  impostorChat.innerHTML = '';
-  Object.values(msgs || {}).forEach(m=>{
-    const d = document.createElement('div'); d.className = 'msg';
-    if(m.id === playerId) d.classList.add('self');
-    d.innerHTML = `<strong style="font-size:13px">${m.name}</strong><div style="font-size:13px;color:var(--muted)">${m.text}</div>`;
-    impostorChat.appendChild(d);
-  });
-  impostorChat.scrollTop = impostorChat.scrollHeight;
-}
+/* ===========================
+   When votes / meta / players change, update some local things
+   =========================== */
+db.ref().on('value', snapshot=>{
+  if(!room) return;
+  const meta = (snapshot.child('rooms/'+room+'/meta').val()) || {};
+  currentTurn = meta.currentTurnPlayer || null;
+  turnEndTimestamp = meta.turnEnd || null;
+  const rounds = parseInt(roundInfoEl.dataset.rounds || '0');
+  // If a turn changed, update rounds count when currentTurn back to first alive player
+  // (we keep it simple: increment rounds when admin clicks next and currentTurn wraps)
+  // Start local timer
+  if(turnEndTimestamp) startLocalTimer();
+  // update turn display
+  const p = players.find(x=>x.id===currentTurn);
+  $('turnInfo').textContent = p ? p.name : '—';
+});
 
-/* Update turn display and start local timer */
-function updateTurnDisplay(){
-  const id = turnOrder[currentTurnIndex % (turnOrder.length || 1)];
-  const player = players.find(p=>p.id === id);
-  setText('turnInfo', player ? player.name : '—');
-  // highlight active
-  document.querySelectorAll('.playersList li').forEach(li=>{
-    li.classList.remove('active');
-    if(player && li.textContent.includes(player.name)) li.classList.add('active');
-  });
-  document.querySelectorAll('#playersCenterList li').forEach(li=>{
-    li.classList.remove('active');
-    if(player && li.textContent.includes(player.name)) li.classList.add('active');
-  });
-  startLocalTimer();
-}
-
-/* Local visual timer (clients) */
-function startLocalTimer(){
-  clearInterval(timerInterval);
-  timeLeft = 60;
-  timerEl.textContent = timeLeft + 's';
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    timerEl.textContent = timeLeft + 's';
-    if(timeLeft <= 0){
-      clearInterval(timerInterval);
-      if(isAdmin) alert('Tiempo agotado para este turno. Presiona Siguiente Turno.');
-    }
-  },1000);
-}
-
-/* Build vote rows and update UI state */
-function updateVoteUI(){
-  buildVoteRows();
-  // disable if voting not enabled
-  document.querySelectorAll('.voteRow').forEach(r=>{
-    if(!votingEnabled) r.classList.add('disabled');
-    else r.classList.remove('disabled');
-  });
-  voteSubmitBtn.disabled = !votingEnabled;
-}
-
-/* Pre-fill join room from URL param ?room=XXXX and show guest panel */
-(function prefill(){
-  const params = new URLSearchParams(location.search);
-  const r = params.get('room');
-  if(r){
-    // hide main UI to show minimal join
-    document.getElementById('mainGrid').style.display = 'none';
-    document.querySelector('header').style.display = 'none';
-    guestPanel.style.display = 'block';
-    guestRoomNumberInput.value = r;
+/* ===========================
+   Keyboard shortcut: quick join if URL has room
+   =========================== */
+window.addEventListener('load', ()=>{
+  const params = new URLSearchParams(window.location.search);
+  if(params.has('room')){
+    // populate join field
+    joinRoomInput.value = params.get('room');
   }
-})();
-
+});
 </script>
 </body>
 </html>
