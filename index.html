@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8" />
@@ -501,36 +501,39 @@ nextTurnBtn.addEventListener('click', ()=>{
   adminNextTurn();
 });
 
+// ===========================
+// Turnos y activación de votación
 function adminNextTurn(){
   if(!room) return;
   const metaRef = db.ref('rooms/'+room+'/meta');
   metaRef.once('value').then(snap=>{
     const m = snap.val() || {};
     const cur = m.currentTurnPlayer || null;
-    // build list of alive players ids in same order as "players" array
     const alive = players.filter(p=>p.alive).map(p=>p.id);
     if(alive.length === 0) return;
-    let idx = alive.indexOf(cur);
-    if(idx < 0) idx = 0;
-    const nextIdx = (idx + 1) % alive.length;
+
+    let idx = alive.indexOf(cur); 
+    if(idx < 0) idx=0;
+    const nextIdx = (idx+1) % alive.length;
     const nextId = alive[nextIdx];
 
-    // Control de rondas: incrementar si volvemos al primer jugador
-    let rounds = m.rounds || 0;
-    if(nextIdx === 0){
-      rounds++;
-    }
+    let turnsPerPlayer = m.turnsPerPlayer || {};
+    alive.forEach(id => { if(!turnsPerPlayer[id]) turnsPerPlayer[id]=0; });
+
+    if(cur) turnsPerPlayer[cur]++;
+
+    const allDone = alive.every(id => turnsPerPlayer[id] >= 2);
 
     const updates = {
       currentTurnPlayer: nextId,
-      turnEnd: now() + 60000,
-      rounds: rounds
+      turnEnd: now()+60000,
+      turnsPerPlayer: turnsPerPlayer
     };
 
-    // Activar votación automáticamente si completamos 2 rondas
-    if(rounds >= 2){
-      updates.voting = true;   // habilita votación
-      updates.rounds = 0;      // reinicia contador para la siguiente serie de turnos
+    if(allDone){
+      updates.voting = true; // habilita votación
+      Object.keys(turnsPerPlayer).forEach(id => turnsPerPlayer[id]=0); // reinicia
+      updates.turnsPerPlayer = turnsPerPlayer;
     }
 
     metaRef.update(updates);
@@ -566,25 +569,25 @@ enableVoteBtn.addEventListener('click', ()=>{
 });
 
 function buildVoteUI(){
-  voteRows.innerHTML = '';
+  voteRows.innerHTML='';
   players.filter(p=>p.alive).forEach(p=>{
-    // can't vote for self
     const row = document.createElement('div');
-    row.className = 'voteRow';
-    row.dataset.target = p.id;
-    row.innerHTML = `<div class="voteName">${p.name}</div><div class="voteBar"><div class="voteFill"></div></div><div class="voteCount">0</div>`;
+    row.className='voteRow'; 
+    row.dataset.target=p.id;
+    row.innerHTML=`<div class="voteName">${p.name}</div>
+                   <div class="voteBar"><div class="voteFill"></div></div>
+                   <div class="voteCount">0</div>`;
     row.addEventListener('click', ()=>{
-      if(!votingActive) return;
-      if(p.id === playerId) return;
-      myVote = p.id;
-      // mark selection visually
+      if(!votingActive) return; // solo se puede votar cuando está activa
+      if(p.id===playerId) return;
+      myVote=p.id;
       Array.from(voteRows.children).forEach(r=>r.classList.remove('active'));
       row.classList.add('active');
-      voteSubmitBtn.disabled = false;
+      voteSubmitBtn.disabled=false;
     });
     voteRows.appendChild(row);
   });
-  voteSubmitBtn.disabled = true;
+  voteSubmitBtn.disabled = true; // al inicio siempre deshabilitado
 }
 
 voteSubmitBtn.addEventListener('click', ()=>{
@@ -696,3 +699,4 @@ window.addEventListener('load', ()=>{
 </script>
 </body>
 </html>
+
