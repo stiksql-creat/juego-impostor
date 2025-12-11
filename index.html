@@ -577,8 +577,13 @@ overlayJoinBtn.addEventListener('click', async ()=>{
 /* =========================
    Escuchar datos de la sala
    ========================= */
+/* =========================
+   Escuchar datos de la sala
+   ========================= */
 function listenRoom(roomId){
   if(!roomId) return;
+
+  // Escuchar jugadores
   db.ref('rooms/'+roomId+'/players').on('value', snap=>{
     const val = snap.val() || {};
     players = Object.entries(val).map(([id,p])=>({id,...p}));
@@ -589,6 +594,7 @@ function listenRoom(roomId){
     renderRoleWord();
   });
 
+  // Escuchar meta de la sala
   db.ref('rooms/'+roomId+'/meta').on('value', snap=>{
     const m = snap.val();
     if(!m) return;
@@ -624,6 +630,7 @@ function listenRoom(roomId){
     renderRoleWord();
   });
 
+  // Escuchar chat de impostores
   db.ref('rooms/'+roomId+'/impostorChat').on('value', snap=>{
     const data = snap.val() || {};
     impostorChat.innerHTML = '';
@@ -636,8 +643,49 @@ function listenRoom(roomId){
     impostorChat.scrollTop = impostorChat.scrollHeight;
   });
 
-  db.ref('rooms/'+roomId+'/votes').on('Value', snap=>{}); // placeholder to ensure subscription
+  // Escuchar votos
+  db.ref('rooms/'+roomId+'/votes').on('value', snap=>{
+    const votes = snap.val() || {};
+    updateVoteBars(votes);
+
+    // Si todos los jugadores vivos han votado, concluir votación
+    const aliveCount = players.filter(p => p.alive).length;
+    if(Object.keys(votes).length === aliveCount && votingActive){
+      concludeVoting(votes);
+    }
+  });
 }
+
+/* =========================
+   Construir UI de votación
+   ========================= */
+function buildVoteUI(){
+  voteRows.innerHTML = '';
+  const alivePlayers = players.filter(p=>p.alive);
+  alivePlayers.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'voteRow';
+    row.dataset.target = p.id;
+    row.innerHTML = `<div class="voteName">${p.name}</div><div class="voteBar"><div class="voteFill"></div></div><div class="voteCount">0</div>`;
+
+    // Click para seleccionar voto
+    row.addEventListener('click', () => {
+      if(!votingActive) return; // usar estado local
+      if(p.id === playerId) return; // no votar por uno mismo
+      myVote = p.id;
+      Array.from(voteRows.children).forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+      voteSubmitBtn.disabled = false;
+    });
+
+    voteRows.appendChild(row);
+  });
+
+  const me = players.find(p=>p.id===playerId);
+  voteSubmitBtn.disabled = !(me && me.alive);
+  myVote = null;
+}
+
 
 /* =========================
    Render UI helpers
