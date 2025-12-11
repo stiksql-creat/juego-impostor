@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Impostor — Juego</title>
+<title>Descubre-al-Impostor</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -95,6 +95,8 @@ body.guest-minimal #resetGameBtn{
 
 /* hide the invite box for guests after they joined */
 body.guest-minimal #inviteBox{ display:none !important; }
+
+body.admin-centralized .grid{grid-template-columns:1fr;}
 
 /* small responsive */
 @media(max-width:1100px){ .grid{grid-template-columns:1fr; padding-bottom:30px} .card{margin-bottom:12px} }
@@ -229,7 +231,7 @@ body.has-overlay .wrap{filter:blur(0.8px);pointer-events:none;user-select:none;}
     </div>
 
     <!-- CENTER: Game -->
-    <div class="card">
+    <div class="card center-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div>
           <div class="muted">Sala</div>
@@ -250,12 +252,12 @@ body.has-overlay .wrap{filter:blur(0.8px);pointer-events:none;user-select:none;}
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;margin-top:12px">
+      <div id="centerControls" style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
         <select id="categorySelect" style="flex:1;border-radius:30px;padding:10px" class="adminOnly"></select>
         <button id="startGameBtn" class="small adminOnly" style="border-radius:30px;background:var(--btn);color:#052044">Iniciar</button>
       </div>
 
-      <div style="display:flex;gap:10px;margin-top:12px">
+      <div id="centerAdminButtons" style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
         <button id="nextTurnBtn" class="btn-ghost small adminOnly" style="border-radius:30px">Siguiente Turno (Admin)</button>
         <button id="enableVoteBtn" class="btn-ghost small adminOnly" style="border-radius:30px">Forzar Votación</button>
         <button id="endGameBtn" class="btn-danger small adminOnly">Finalizar</button>
@@ -268,23 +270,63 @@ body.has-overlay .wrap{filter:blur(0.8px);pointer-events:none;user-select:none;}
         <div id="roundInfo" class="muted" style="margin-top:8px" data-rounds="0">Rondas completadas: 0</div>
       </div>
 
-      <div style="margin-top:12px">
-        <h3 style="margin-bottom:8px">Lista de jugadores</h3>
-        <ul id="playersCenterList" class="playersList"></ul>
+      <div id="centerInviteLinkWrapper" style="margin-top:12px;display:block">
+        <div class="muted">Link de invitación:</div>
+        <div id="inviteLinkCenter" class="inviteBox" style="margin-top:8px;word-break:break-all;color:var(--accent)">—</div>
+        <div style="margin-top:8px"><button id="copyInviteCenter" class="small">Copiar</button></div>
       </div>
+
+      <div style="margin-top:12px">
+        <h3 style="margin-bottom:8px">Lista de jugadores / Votación</h3>
+        <ul id="playersCenterList" class="playersList"></ul>
+        <div id="voteRows" style="margin-top:8px"></div>
+        <div style="margin-top:8px"><button id="voteSubmitBtn" class="voteSubmit" disabled>Enviar mi voto</button></div>
+      </div>
+
+      <div id="centerImpostorChatWrapper" style="margin-top:12px">
+        <h3 style="margin-bottom:8px">Chat privado — Impostores</h3>
+        <div id="impostorChat_center" class="impostorChat" style="display:none"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="impostorMsg_center" placeholder="Mensaje a impostores..." style="flex:1;border-radius:20px;padding:10px">
+          <button id="sendImpostor_center" class="small">Enviar</button>
+        </div>
+      </div>
+
     </div>
 
-    <!-- RIGHT: Voting -->
-    <div class="card">
+    <!-- RIGHT: Voting (moved into center when centralized) -->
+    <div class="card right">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div><strong>Votación</strong></div>
         <div class="muted">Estado: <span id="votingStatus">Bloqueada</span></div>
       </div>
 
       <div class="votingPanel" id="votingPanel">
-        <div id="voteRows"></div>
-        <button id="voteSubmitBtn" class="voteSubmit" disabled>Enviar mi voto</button>
+        <div id="voteRows_right"></div>
+        <button id="voteSubmitBtn_right" class="voteSubmit" disabled>Enviar mi voto</button>
         <div class="muted" style="margin-top:8px">Haz click en una barra para seleccionar a quién votar. Las barras muestran conteo en tiempo real.</div>
+        
+        <!-- Overlay para indicar turno -->
+<div id="turnOverlay" style="
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color: rgba(144, 238, 144, 0.6); /* verde claro semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5em;
+    font-weight: bold;
+    color: #006400; /* verde oscuro para el texto */
+    z-index: 9999;
+    pointer-events: none;
+    display: none; /* oculto por defecto */
+">
+  TU TURNO
+</div>
+
       </div>
     </div>
   </div>
@@ -353,7 +395,7 @@ const numPlayersInput = $('numPlayers');
 const createRoomBtn = $('createRoomBtn');
 const joinRoomBtn = $('joinRoomBtn');
 const roomInfo = $('roomInfo');
-const inviteLink = $('inviteLink');
+const inviteLink = $('inviteLink'); // left original
 const inviteBox = $('inviteBox');
 const playersListEl = $('playersList');
 const playersCenterList = $('playersCenterList');
@@ -372,10 +414,19 @@ const impostorChatContainer = $('impostorChatContainer');
 const impostorChat = $('impostorChat');
 const impostorMsg = $('impostorMsg');
 const sendImpostor = $('sendImpostor');
-const voteRows = $('voteRows');
-const voteSubmitBtn = $('voteSubmitBtn');
+const voteRows = $('voteRows'); // center
+const voteRows_right = $('voteRows_right'); // right original
+const voteSubmitBtn = $('voteSubmitBtn'); // center
+const voteSubmitBtn_right = $('voteSubmitBtn_right'); // right original
 const votingStatus = $('votingStatus');
 const guestBadge = $('guestBadge');
+
+/* Center additional elements */
+const inviteLinkCenter = $('inviteLinkCenter');
+const copyInviteCenter = $('copyInviteCenter');
+const impostorChat_center = $('impostorChat_center');
+const impostorMsg_center = $('impostorMsg_center');
+const sendImpostor_center = $('sendImpostor_center');
 
 /* Overlay elements */
 const welcomeOverlay = $('welcomeOverlay');
@@ -415,23 +466,19 @@ function now(){ return Date.now(); }
    UI: ocultar/mostrar según rol (admin vs invitado)
    ========================= */
 function updateUIForRole(){
-  // adminOnly elements (class)
   const adminElems = document.querySelectorAll('.adminOnly');
   adminElems.forEach(el => el.style.display = isAdmin ? '' : 'none');
 
-  // minimal guest panel behavior
   if(!isAdmin){
     document.body.classList.add('guest-minimal');
-    // hide inviteBox (the info + link) for guests once inside
     if(room) inviteBox.style.display = 'none';
-    // show top-right badge with room number
     if(room){
       guestBadge.textContent = 'Sala ' + room;
       guestBadge.style.display = 'inline-block';
     }
   } else {
     document.body.classList.remove('guest-minimal');
-    inviteBox.style.display = ''; // admin sees inviteBox
+    inviteBox.style.display = '';
     guestBadge.style.display = 'none';
   }
 }
@@ -447,6 +494,37 @@ function showWelcomeOverlay(show=true){
     welcomeOverlay.style.display = 'none';
     document.body.classList.remove('has-overlay');
   }
+}
+
+/* =========================
+   Reorganizar UI al modo centralizado
+   ========================= */
+function applyCentralLayout(){
+  // Mark body so CSS makes grid single-column
+  document.body.classList.add('admin-centralized');
+
+  // hide left and right cards visually (they remain in DOM but hidden)
+  const leftCard = document.querySelector('.card.left');
+  const rightCard = document.querySelector('.card.right');
+  if(leftCard) leftCard.style.display = 'none';
+  if(rightCard) rightCard.style.display = 'none';
+
+  // populate center invite link from left inviteLink element if present
+  if(inviteLink && inviteLink.textContent && inviteLink.textContent.trim() !== '—'){
+    inviteLinkCenter.textContent = inviteLink.textContent;
+  } else if(room){
+    inviteLinkCenter.textContent = `${location.origin}${location.pathname}?room=${room}`;
+  }
+
+  // copy existing impostor chat into center (keep both in sync via DB listeners)
+  // nothing to move structurally because center has its own chat container
+  // ensure center chat visibility toggles according to role
+  impostorChat_center.style.display = impostorChatContainer.style.display;
+
+  // If the right voting panel had children (voteRows_right), we will mirror them into center voteRows.
+  // We'll leave the data-binding intact by reusing voteRows (center) as main area.
+  // Clear center voteRows so they will be rebuilt by buildVoteUI when votingActive true.
+  voteRows.innerHTML = '';
 }
 
 /* =========================
@@ -470,7 +548,8 @@ createRoomBtn.addEventListener('click', ()=> {
     turnsPlayedTotal: 0,
     votingStage: 0,
     rounds: 0,
-    winner: null
+    winner: null,
+    centralized: true
   });
   db.ref('rooms/'+room+'/players/'+playerId).set({
     name: playerName,
@@ -481,6 +560,7 @@ createRoomBtn.addEventListener('click', ()=> {
     votedFor: null
   });
 
+  // Set visible room info
   roomInfo.textContent = room;
   inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
   roomNumberEl.textContent = room;
@@ -489,10 +569,12 @@ createRoomBtn.addEventListener('click', ()=> {
   showWelcomeOverlay(false);
   updateUIForRole();
   listenRoom(room);
+
+  // Apply central layout locally and set DB flag already set above so others will follow
+  applyCentralLayout();
 });
 
 joinRoomBtn.addEventListener('click', ()=> {
-  // left-panel join (works after user typed inputs in left panel)
   playerName = playerNameInput.value.trim() || "Anon";
   playerId = uid();
   isAdmin = false;
@@ -513,16 +595,12 @@ joinRoomBtn.addEventListener('click', ()=> {
   inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
   roomNumberEl.textContent = room;
 
-  // hide overlay if still open
   showWelcomeOverlay(false);
 
   updateUIForRole();
   listenRoom(room);
 });
 
-/* =========================
-   Overlay join (invited users opening link)
-   ========================= */
 overlayJoinBtn.addEventListener('click', async ()=>{
   const name = overlayName.value.trim() || overlayName.placeholder || 'Anon';
   const roomId = overlayRoom.value.trim();
@@ -546,7 +624,6 @@ overlayJoinBtn.addEventListener('click', async ()=>{
   inviteLink.textContent = `${location.origin}${location.pathname}?room=${room}`;
   roomNumberEl.textContent = room;
 
-  // hide overlay and show game UI
   showWelcomeOverlay(false);
 
   updateUIForRole();
@@ -559,24 +636,16 @@ overlayJoinBtn.addEventListener('click', async ()=>{
 (function initFromURL(){
   const params = new URLSearchParams(window.location.search);
   if(params.has('room')){
-    // rellenar inputs del overlay y del left panel
     overlayRoom.value = params.get('room');
     joinRoomInput.value = params.get('room');
-
-    // mostrar overlay completo (pantalla de bienvenida)
     showWelcomeOverlay(true);
-
-    // dejar el cuerpo en estado "invitado" mientras no se unan
     document.body.classList.add('guest-minimal');
   } else {
-    // si no hay room en URL, no forzamos overlay
     showWelcomeOverlay(false);
   }
 })();
 
-/* =========================
-   Escuchar datos de la sala
-   ========================= */
+
 /* =========================
    Escuchar datos de la sala
    ========================= */
@@ -609,6 +678,16 @@ function listenRoom(roomId){
     roundInfoEl.textContent = 'Rondas completadas: ' + (m.rounds || 0);
     if(m.category) categorySelect.value = m.category;
 
+    // If centralized flag is present, apply central layout (everyone will get same visual)
+    if(m.centralized){
+      applyCentralLayout();
+      // update center invite link content
+      if(inviteLinkCenter) inviteLinkCenter.textContent = `${location.origin}${location.pathname}?room=${roomId}`;
+      // hide original left/right elements
+      document.querySelectorAll('.card.left, .card.right').forEach(el=>el.style.display='none');
+      document.body.classList.add('admin-centralized');
+    }
+
     if(currentTurn){
       const p = players.find(x=>x.id===currentTurn);
       $('turnInfo').textContent = p ? p.name : '—';
@@ -633,14 +712,18 @@ function listenRoom(roomId){
   // Escuchar chat de impostores
   db.ref('rooms/'+roomId+'/impostorChat').on('value', snap=>{
     const data = snap.val() || {};
-    impostorChat.innerHTML = '';
+    // populate both left and center chat areas so either can show messages
+    if(impostorChat) impostorChat.innerHTML = '';
+    if(impostorChat_center) impostorChat_center.innerHTML = '';
     Object.values(data).forEach(msg=>{
       const d = document.createElement('div');
       d.className = 'msg' + (msg.fromId===playerId ? ' self' : '');
       d.textContent = `${msg.fromName}: ${msg.text}`;
-      impostorChat.appendChild(d);
+      if(impostorChat) impostorChat.appendChild(d);
+      if(impostorChat_center) impostorChat_center.appendChild(d.cloneNode(true));
     });
-    impostorChat.scrollTop = impostorChat.scrollHeight;
+    if(impostorChat) impostorChat.scrollTop = impostorChat.scrollHeight;
+    if(impostorChat_center) impostorChat_center.scrollTop = impostorChat_center.scrollHeight;
   });
 
   // Escuchar votos
@@ -648,7 +731,6 @@ function listenRoom(roomId){
     const votes = snap.val() || {};
     updateVoteBars(votes);
 
-    // Si todos los jugadores vivos han votado, concluir votación
     const aliveCount = players.filter(p => p.alive).length;
     if(Object.keys(votes).length === aliveCount && votingActive){
       concludeVoting(votes);
@@ -702,44 +784,75 @@ function renderPlayers(){
   });
 }
 
+// Función para mostrar/ocultar chat de impostores según rol
+function toggleImpostorChat(role){
+  const isImpostor = role === 'Impostor';
+  const centerActive = document.body.classList.contains('admin-centralized');
+
+  if(centerActive){
+    impostorChat_center.style.display = isImpostor ? 'block' : 'none';
+  } else {
+    impostorChatContainer.style.display = isImpostor ? 'block' : 'none';
+  }
+}
+
 function renderRoleWord(){
-  const me = players.find(p=>p.id===playerId);
+  const me = players.find(p => p.id === playerId);
+
   if(me){
     roleDisplay.textContent = me.role || '—';
+
     if(me.role === 'Impostor'){
-      db.ref('rooms/'+room+'/meta/category').once('value').then(s=>{
+      db.ref('rooms/'+room+'/meta/category').once('value').then(s => {
         const cat = s.val() || '—';
         wordDisplay.textContent = 'Categoría: ' + cat;
       });
     } else {
       wordDisplay.textContent = me.word || '—';
     }
-    // impostor chat visible solo para impostores
-    impostorChatContainer.style.display = (me.role==='Impostor') ? 'block' : 'none';
+
+    // Llamar a la función que controla la visibilidad del chat
+    toggleImpostorChat(me.role);
+
   } else {
     roleDisplay.textContent = '—';
     wordDisplay.textContent = '—';
-    impostorChatContainer.style.display = 'none';
+    toggleImpostorChat(null); // ocultar chat si no hay jugador
   }
 }
+
 
 /* =========================
    Start game: roles & words
    ========================= */
-startGameBtn.addEventListener('click', async ()=>{
+startGameBtn.addEventListener('click', async ()=> {
   if(!room) return alert('No estás en ninguna sala');
   if(!isAdmin) return alert('Sólo admin puede iniciar');
+
   const metaSnap = await db.ref('rooms/'+room+'/meta').once('value');
   const meta = metaSnap.val() || {};
   const required = meta.requiredPlayers || 4;
+
   if(players.length < required) return alert(`Se necesitan ${required} jugadores para iniciar`);
 
+  // Elegir categoría y palabras
   const category = categorySelect.value || Object.keys(categories)[0];
   const wordsPool = (categories[category] || []).slice();
+
+  // Orden aleatorio de jugadores
   const shuffled = players.slice().sort(()=>Math.random()-0.5);
+
+  // Definir impostores
   const impostorCount = Math.max(1, Math.floor(shuffled.length / 4));
   const impostors = shuffled.slice(0, impostorCount).map(p=>p.id);
 
+  // Asegurar que el primer jugador no sea impostor
+  let firstNonImpostorIndex = shuffled.findIndex(p => !impostors.includes(p.id));
+  if(firstNonImpostorIndex > 0){
+      [shuffled[0], shuffled[firstNonImpostorIndex]] = [shuffled[firstNonImpostorIndex], shuffled[0]];
+  }
+
+  // Elegir palabra secreta
   const secretWord = wordsPool.splice(Math.floor(Math.random()*wordsPool.length),1)[0] || '—';
 
   const updates = {};
@@ -755,10 +868,11 @@ startGameBtn.addEventListener('click', async ()=>{
     updates['rooms/'+room+'/players/'+p.id+'/votedFor'] = null;
   });
 
+  // Actualizar meta de la sala
   updates['rooms/'+room+'/meta/category'] = category;
   updates['rooms/'+room+'/meta/status'] = 'playing';
   updates['rooms/'+room+'/meta/currentTurnPlayer'] = shuffled[0].id;
-  updates['rooms/'+room+'/meta/turnEnd'] = now() + 60000;
+  updates['rooms/'+room+'/meta/turnEnd'] = now() + 30000; // cronómetro 30s
   updates['rooms/'+room+'/meta/voting'] = false;
   updates['rooms/'+room+'/meta/turnsPlayedTotal'] = 0;
   updates['rooms/'+room+'/meta/votingStage'] = 0;
@@ -769,6 +883,7 @@ startGameBtn.addEventListener('click', async ()=>{
 
   await db.ref().update(updates);
 });
+
 
 /* =========================
    Timer and turns
@@ -796,64 +911,233 @@ function startLocalTimer(){
 
 nextTurnBtn.addEventListener('click', ()=>{ if(!isAdmin) return alert('Solo admin puede cambiar turno'); adminNextTurn(); });
 
-function adminNextTurn(){
-  if(!room) return;
-  const metaRef = db.ref('rooms/'+room+'/meta');
-  metaRef.once('value').then(snap=>{
+/* =========================
+   Turnos, contador y votación
+   ========================= */
+function adminNextTurn() {
+  if (!room) return;
+  const metaRef = db.ref('rooms/' + room + '/meta');
+  metaRef.once('value').then(snap => {
     const m = snap.val() || {};
     const cur = m.currentTurnPlayer || null;
-    const alive = players.filter(p=>p.alive).map(p=>p.id);
-    if(alive.length === 0) return;
+    const alive = players.filter(p => p.alive).map(p => p.id);
+    if (alive.length === 0) return;
+
     let idx = alive.indexOf(cur);
-    if(idx < 0) idx = 0;
+    if (idx < 0) idx = 0;
     const nextIdx = (idx + 1) % alive.length;
     const nextId = alive[nextIdx];
 
     let turnsPlayed = (m.turnsPlayedTotal || 0) + 1;
     let voting = !!m.voting;
     let votingStageLocal = m.votingStage || 0;
+    let rounds = m.rounds || 0;
 
-    const firstVotingThreshold = alive.length * 2;
-    const secondVotingThreshold = alive.length * 1;
+    // Increment rounds al completar un ciclo completo de turnos
+    if (nextIdx === 0) rounds++;
 
-    if(votingStageLocal === 0 && turnsPlayed >= firstVotingThreshold){
+    // Lógica de activación de votación según la etapa
+    if (votingStageLocal === 0 && rounds >= 2) {
       voting = true;
       votingStageLocal = 1;
     }
-
-    if(votingStageLocal === 2 && turnsPlayed >= secondVotingThreshold){
+    if (votingStageLocal === 2 && rounds >= 3) {
       voting = true;
       votingStageLocal = 3;
     }
 
     const updates = {
       currentTurnPlayer: nextId,
-      turnEnd: now() + 60000,
+      // Si se activa votación, pausamos el timer (turnEnd = null)
+      turnEnd: voting ? null : now() + 30000,
       turnsPlayedTotal: turnsPlayed,
       voting: voting,
-      votingStage: votingStageLocal
+      votingStage: votingStageLocal,
+      rounds: rounds
     };
+    
+    // Escuchar cambios en el jugador que tiene el turno
+db.ref('rooms/'+room+'/meta/currentTurnPlayer').on('value', snap => {
+    const currentTurn = snap.val();
+    const turnOverlay = document.getElementById('turnOverlay');
+    if(currentTurn === playerId){ 
+        // Si es mi turno, mostrar overlay
+        turnOverlay.style.display = 'flex';
+    } else {
+        // Si no es mi turno, ocultar overlay
+        turnOverlay.style.display = 'none';
+    }
+});
 
-    let rounds = m.rounds || 0;
-    if(nextIdx === 0){ rounds++; updates.rounds = rounds; }
 
     metaRef.update(updates);
   });
 }
 
+
+function startLocalTimer() {
+  clearInterval(timerInterval);
+
+  function tick() {
+    if (votingActive) {
+      timerEl.textContent = 'Votación…';
+      return;
+    }
+
+    if (!turnEndTimestamp) {
+      timerEl.textContent = '—';
+      return;
+    }
+
+    const left = Math.max(0, Math.floor((turnEndTimestamp - Date.now()) / 1000));
+    timerEl.textContent = left + 's';
+
+    if (left <= 0) {
+      clearInterval(timerInterval);
+      if (isAdmin) adminNextTurn();
+    }
+  }
+
+  // Obtener el timestamp actual de Firebase si no lo tenemos
+  if (!turnEndTimestamp && room) {
+    db.ref('rooms/' + room + '/meta/turnEnd').once('value').then(snap => {
+      turnEndTimestamp = snap.val() || (Date.now() + 30000);
+      tick();
+    });
+  } else {
+    tick();
+  }
+
+  timerInterval = setInterval(tick, 1000);
+}
+
+/* =========================
+   Conclusión de votación
+   ========================= */
+async function concludeVoting(votesObj) {
+  if (!room) return;
+  const metaSnap = await db.ref('rooms/' + room + '/meta').once('value');
+  const meta = metaSnap.val() || {};
+  if (!meta.voting) return;
+
+  const counts = {};
+  Object.values(votesObj || {}).forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+  let max = 0, candidate = null;
+  for (const id in counts) {
+    if (counts[id] > max) { max = counts[id]; candidate = id; }
+    else if (counts[id] === max) candidate = null;
+  }
+
+  const updatesMeta = {};
+
+  if (candidate) {
+    const candPlayer = players.find(p => p.id === candidate);
+    if (candPlayer && candPlayer.role === 'Impostor') {
+      updatesMeta.status = 'ended';
+      updatesMeta.winner = 'players';
+      updatesMeta.voting = false;
+      updatesMeta.votingStage = 0;
+      updatesMeta.turnsPlayedTotal = 0;
+      await db.ref('rooms/' + room + '/meta').update(updatesMeta);
+      await db.ref('rooms/' + room + '/votes').set(null);
+      votingActive = false;
+      turnEndTimestamp = null; // Pausar cronómetro
+      votingStatus.textContent = 'Bloqueada';
+      voteRows.innerHTML = '';
+      alert("¡El impostor ha sido descubierto! Ganaron los jugadores.");
+      return;
+    } else {
+      if (meta.votingStage === 1) {
+        updatesMeta.voting = false;
+        updatesMeta.votingStage = 2;
+        updatesMeta.turnsPlayedTotal = 0;
+        const firstAlive = players.find(p => p.alive);
+        updatesMeta.currentTurnPlayer = firstAlive ? firstAlive.id : null;
+        updatesMeta.turnEnd = now() + 30000; // Reinicia 30s
+      } else if (meta.votingStage === 3) {
+        updatesMeta.status = 'ended';
+        updatesMeta.winner = 'impostor';
+        updatesMeta.voting = false;
+        updatesMeta.votingStage = 0;
+        updatesMeta.turnsPlayedTotal = 0;
+        await db.ref('rooms/' + room + '/meta').update(updatesMeta);
+        await db.ref('rooms/' + room + '/votes').set(null);
+        votingActive = false;
+        turnEndTimestamp = null;
+        votingStatus.textContent = 'Bloqueada';
+        voteRows.innerHTML = '';
+        alert("No descubrieron al impostor. ¡El impostor gana!");
+        return;
+      }
+    }
+  } else {
+    if (meta.votingStage === 1) {
+      updatesMeta.voting = false;
+      updatesMeta.votingStage = 2;
+      updatesMeta.turnsPlayedTotal = 0;
+      const firstAlive = players.find(p => p.alive);
+      updatesMeta.currentTurnPlayer = firstAlive ? firstAlive.id : null;
+      updatesMeta.turnEnd = now() + 30000; // Reinicia 30s
+    } else if (meta.votingStage === 3) {
+      updatesMeta.status = 'ended';
+      updatesMeta.winner = 'impostor';
+      updatesMeta.voting = false;
+      updatesMeta.votingStage = 0;
+      updatesMeta.turnsPlayedTotal = 0;
+      await db.ref('rooms/' + room + '/meta').update(updatesMeta);
+      await db.ref('rooms/' + room + '/votes').set(null);
+      votingActive = false;
+      turnEndTimestamp = null;
+      votingStatus.textContent = 'Bloqueada';
+      voteRows.innerHTML = '';
+      alert("No descubrieron al impostor. ¡El impostor gana!");
+      return;
+    }
+  }
+
+  await db.ref('rooms/' + room + '/meta').update(updatesMeta);
+  await db.ref('rooms/' + room + '/votes').set(null);
+  votingActive = false;
+  votingStatus.textContent = 'Bloqueada';
+  voteRows.innerHTML = '';
+
+  // Reiniciar cronómetro local si hubo turnEnd
+  if (updatesMeta.turnEnd) {
+    turnEndTimestamp = updatesMeta.turnEnd;
+    startLocalTimer(); // <--- Esto reinicia el cronómetro
+  }
+}
+
 /* =========================
    Chat impostores
    ========================= */
-sendImpostor.addEventListener('click', ()=>{
+sendImpostor.addEventListener('click', () => {
+  const me = players.find(p => p.id === playerId);
+  if (!me || me.role !== 'Impostor') return; // SOLO IMPOSITOR
   const text = impostorMsg.value.trim();
-  if(!text || !room) return;
-  db.ref('rooms/'+room+'/impostorChat').push({
+  if (!text || !room) return;
+  db.ref('rooms/' + room + '/impostorChat').push({
     fromId: playerId,
     fromName: playerName,
     text: text,
     ts: now()
   });
   impostorMsg.value = '';
+});
+
+sendImpostor_center.addEventListener('click', () => {
+  const me = players.find(p => p.id === playerId);
+  if (!me || me.role !== 'Impostor') return; // SOLO IMPOSITOR
+  const text = impostorMsg_center.value.trim();
+  if (!text || !room) return;
+  db.ref('rooms/' + room + '/impostorChat').push({
+    fromId: playerId,
+    fromName: playerName,
+    text: text,
+    ts: now()
+  });
+  impostorMsg_center.value = '';
 });
 
 /* =========================
@@ -956,7 +1240,7 @@ async function concludeVoting(votesObj){
         updatesMeta.turnsPlayedTotal = 0;
         const firstAlive = players.find(p=>p.alive);
         updatesMeta.currentTurnPlayer = firstAlive ? firstAlive.id : null;
-        updatesMeta.turnEnd = now() + 60000;
+        updatesMeta.turnEnd = now() + 30000;
       } else if(meta.votingStage === 3){
         updatesMeta.status = 'ended';
         updatesMeta.winner = 'impostor';
@@ -983,7 +1267,7 @@ async function concludeVoting(votesObj){
       updatesMeta.turnsPlayedTotal = 0;
       const firstAlive = players.find(p=>p.alive);
       updatesMeta.currentTurnPlayer = firstAlive ? firstAlive.id : null;
-      updatesMeta.turnEnd = now() + 60000;
+      updatesMeta.turnEnd = now() + 30000;
     } else if(meta.votingStage === 3){
       updatesMeta.status = 'ended';
       updatesMeta.winner = 'impostor';
@@ -1023,7 +1307,12 @@ setInterval(()=>{
   if(me){
     roleDisplay.textContent = me.role || '—';
     wordDisplay.textContent = (me.role==='Impostor') ? ('Categoría: ' + (categorySelect.value || '—')) : (me.word || '—');
-    impostorChatContainer.style.display = (me.role==='Impostor') ? 'block' : 'none';
+    const centerActive = document.body.classList.contains('admin-centralized');
+    if(centerActive){
+      impostorChat_center.style.display = (me.role==='Impostor') ? 'block' : 'none';
+    } else {
+      impostorChatContainer.style.display = (me.role==='Impostor') ? 'block' : 'none';
+    }
   }
   db.ref('rooms/'+room+'/meta/rounds').once('value').then(s=>{
     const r = s.val() || 0;
@@ -1094,10 +1383,10 @@ resetGameBtn.addEventListener('click', async () => {
 window.addEventListener('load', ()=>{
   const params = new URLSearchParams(window.location.search);
   if(params.has('room')){
-    // already handled in initFromURL; this is extra safety to prefill left-panel input too
     joinRoomInput.value = params.get('room');
   }
 });
 </script>
 </body>
 </html>
+```
